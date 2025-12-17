@@ -57,8 +57,8 @@ public static class DatabaseSeeder
                 DeskId = 102,
                 UserId = "U1",
                 ReservationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(1)), // Tomorrow
-                StartDate = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(9)),
-                EndDate = TimeOnly.FromDateTime(DateTime.UtcNow.AddHours(17))
+                StartDate = new TimeOnly(10,0),
+                EndDate = new TimeOnly(15,0)
             },
             new Reservation
             {

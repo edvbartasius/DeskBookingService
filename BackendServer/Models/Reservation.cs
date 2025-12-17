@@ -9,3 +9,4 @@ public class Reservation
     public required TimeOnly StartDate { get; set; }
     public required TimeOnly EndDate { get; set; }
 }
+
