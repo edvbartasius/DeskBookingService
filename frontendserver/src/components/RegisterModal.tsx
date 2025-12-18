@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
+import api from "../services/api.ts";
 
 interface RegisterModalProps {
     show: boolean;
@@ -13,9 +14,22 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide, onSwitchToL
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle registration logic here
+        
+        try {
+            const registrationData = {
+                name,
+                surname,
+                email,
+                password,
+            };
+            console.log("Submitting registration data:", registrationData);
+            const response = await api.post("users/register", registrationData);
+            console.log("Registration successful:", response.data);
+        } catch (error: any) {
+            console.error("Registration failed:", error);
+        }
         onHide();
     };
 
