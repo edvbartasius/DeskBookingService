@@ -1,0 +1,63 @@
+import React, { useState } from 'react';
+import Nav from 'react-bootstrap/Nav';
+import BootstrapNavbar from 'react-bootstrap/Navbar';
+import Container from 'react-bootstrap/Container';
+import Button from 'react-bootstrap/Button';
+import { Link } from 'react-router-dom';
+import LoginModal from './LoginModal.tsx';
+import RegisterModal from './RegisterModal.tsx';
+
+const Navbar = () => {
+    const [showLogin, setShowLogin] = useState(false);
+    const [showRegister, setShowRegister] = useState(false);
+
+    const handleSwitchToRegister = () => {
+        setShowLogin(false);
+        setShowRegister(true);
+    };
+
+    const handleSwitchToLogin = () => {
+        setShowRegister(false);
+        setShowLogin(true);
+    };
+
+    return (
+        <>
+            <BootstrapNavbar expand="lg" bg="dark" variant="dark">
+                <Container fluid>
+                    <BootstrapNavbar.Brand as={Link} to="/home">
+                        Desk Booking Service
+                    </BootstrapNavbar.Brand>
+
+                    <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
+                    <BootstrapNavbar.Collapse id="basic-navbar-nav">
+                        <Nav className="me-auto">
+                            <Nav.Link as={Link} to="/desks">Seating</Nav.Link>
+                        </Nav>
+
+                        <div className="ms-auto d-flex flex-row align-items-center gap-2">
+                            <Button variant="outline-light" onClick={() => setShowLogin(true)}>
+                                Login
+                            </Button>
+                            <Button variant="light" onClick={() => setShowRegister(true)}>
+                                Register
+                            </Button>
+                        </div>
+                    </BootstrapNavbar.Collapse>
+                </Container>
+            </BootstrapNavbar>
+
+            <LoginModal
+                show={showLogin}
+                onHide={() => setShowLogin(false)}
+                onSwitchToRegister={handleSwitchToRegister}
+            />
+            <RegisterModal
+                show={showRegister}
+                onHide={() => setShowRegister(false)}
+                onSwitchToLogin={handleSwitchToLogin}
+            />
+        </>
+    );
+}
+export default Navbar;
