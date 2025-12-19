@@ -3,7 +3,7 @@ import { User, UserRole} from "../types/database.types.tsx"
 
 
 interface UserContextType {
-    user: User | null;
+    loggedInUser: User | null;
     setUser: (userData: User | null) => void;
     isAdmin: boolean;
     clearUser: () => void;
@@ -12,32 +12,32 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // Provides session-like functionality without implementing actual authentification/authorization
 export const UserProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-    const [user, setUserState] = useState<User | null>(null);
+    const [loggedInUser, setLoggedInUserState] = useState<User | null>(null);
 
     // Load from localStorage on mount
     useEffect(() => {
-        const stored = localStorage.getItem('user');
+        const stored = localStorage.getItem('loggedInUser');
         if (stored) {
-            setUserState(JSON.parse(stored));
+            setLoggedInUserState(JSON.parse(stored));
         }
     }, []);
     
     const setUser = (userData: User | null) => {
-        setUserState(userData);
+        setLoggedInUserState(userData);
         if (userData) {
-            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('loggedInUser', JSON.stringify(userData));
         }
     };
 
-    const isAdmin = user?.role === UserRole.Admin;
+    const isAdmin = loggedInUser?.role === UserRole.Admin;
 
     const clearUser = () => {
-        setUserState(null);
-        localStorage.removeItem('user');
+        setLoggedInUserState(null);
+        localStorage.removeItem('loggedInUser');
     };
 
     return (
-        <UserContext.Provider value={{ user, setUser, isAdmin, clearUser }}>
+        <UserContext.Provider value={{ loggedInUser, setUser, isAdmin, clearUser }}>
             {children}
         </UserContext.Provider>
     );
