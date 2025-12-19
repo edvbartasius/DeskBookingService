@@ -11,7 +11,7 @@ import { useUser } from '../contexts/UserContext.tsx';
 const Navbar = () => {
     const [showLogin, setShowLogin] = useState(false);
     const [showRegister, setShowRegister] = useState(false);
-    const { user, isAdmin, clearUser } = useUser();
+    const { loggedInUser, isAdmin, clearUser } = useUser();
 
     const handleSwitchToRegister = () => {
         setShowLogin(false);
@@ -35,7 +35,7 @@ const Navbar = () => {
                     <BootstrapNavbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <Nav.Link as={Link} to="/desks">Seating</Nav.Link>
-                            {user && 
+                            {loggedInUser && 
                                 <Nav.Link as={Link} to="/profile">Profile</Nav.Link>
                             }
                             {isAdmin &&
@@ -44,9 +44,9 @@ const Navbar = () => {
                         </Nav>
 
                         <div className="ms-auto d-flex flex-row align-items-center gap-2">
-                            {user ? (
+                            {loggedInUser ? (
                                 <>
-                                    <span className="text-light">Hello, {user.name} {user.surname}</span>
+                                    <span className="text-light">Hello, {loggedInUser.name} {loggedInUser.surname}</span>
                                     <Button variant="outline-light" onClick={clearUser}>
                                         Logout
                                     </Button>

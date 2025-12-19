@@ -5,7 +5,7 @@ import { Button, Card, Container } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
 const AdminPage = () => {
-    const { user, isAdmin } = useUser(); // Logged in user context for limiting accesibility to page
+    const { isAdmin } = useUser(); // Logged in user context for limiting accesibility to page
     const cards: CardConfig[] = [
         {
             id: 0,
