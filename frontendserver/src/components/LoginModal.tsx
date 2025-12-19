@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
+import api from "../services/api.ts";
 
 interface LoginModalProps {
     show: boolean;
@@ -10,11 +11,32 @@ interface LoginModalProps {
 const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegister }) => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle login logic here
-        onHide();
+        setErrorMessage("");
+        try {
+            const loginData = {
+                email,
+                password
+            };
+            console.log("Submitting login data:", loginData);
+            const response = await api.post("users/login-user", loginData);
+            if (response.status == 200) { // success
+                console.log("Login successfull", response.data);
+                onHide(); // Hide modal on successfull login
+            } else {
+                // Display error message
+                setErrorMessage(response.data || "Login failed")
+                console.log("Login failed:", response.data)
+            }
+        } catch (error: any)
+        {
+            console.error("Login failed:", error);
+            const message = error.response?.data || error.message || "An error occurred during login";
+            setErrorMessage(message);
+        }
     };
 
     return (
@@ -23,6 +45,11 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
                 <Modal.Title>Login</Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                {errorMessage && (
+                    <div className="alert alert-danger" role="alert">
+                        {errorMessage}
+                    </div>
+                )}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3">
                         <Form.Label>Email</Form.Label>

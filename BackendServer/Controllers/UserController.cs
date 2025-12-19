@@ -3,6 +3,8 @@ using DeskBookingService.Models;
 using DeskBookingService.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace DeskBookingService.Controllers
 {
@@ -59,6 +61,34 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        [HttpPost("login-user")]
+        public async Task<IActionResult> LoginUser([FromBody] UserDto userDto)
+        {
+            try
+            {
+                // Check if email is valid & registered to a user
+                if (!IsValidEmail(userDto.Email))
+                    return BadRequest("No valid email provided");
+                if (!await IsRegisteredEmail(userDto.Email))
+                {
+                    return BadRequest("Email is not registered");
+                }
+                // Get the user by credentials by checking if password matches the one with specified email
+                // Since no authentification is needed as a requirement, just check plaintext password
+                // In production environment ensure proper security/authentification measures
+                var loggedInUser = await GetUserByCredentials(userDto.Email, userDto.Password);
+
+                if (loggedInUser == null)
+                {
+                    return BadRequest("Invalid email or password");
+                }
+                return Ok(loggedInUser);
+            } catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
         /// <summary>
         /// Checks if a user with the specified email already exists.
         /// </summary>
@@ -101,6 +131,44 @@ namespace DeskBookingService.Controllers
             catch
             {
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Check if a provided email adress is registered to a user
+        /// </summary>
+        /// <param name="email">Email string to check</param>
+        /// <returns>True if email is already registered</returns>
+        private async Task<bool> IsRegisteredEmail(string email)
+        {
+            try
+            {
+                return await _context.Users.AnyAsync(u => u.Email == email);
+            } 
+            catch
+            {
+                return false;
+            }
+        }
+        /// <summary>
+        /// Get user by checking email and password matching
+        /// </summary>
+        /// <param name="email">User email string</param>
+        /// <param name="password">User password string</param>
+        /// <returns>Returns UserDTO</returns>
+        private async Task<UserDto?> GetUserByCredentials(string email, string password)
+        {
+            try
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Password == password);
+                if (user == null)
+                    return null;
+
+                return _mapper.Map<UserDto>(user);
+            }
+            catch
+            {
+                return null;
             }
         }
     }
