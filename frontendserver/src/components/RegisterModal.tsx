@@ -25,7 +25,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide, onSwitchToL
                 password,
             };
             console.log("Submitting registration data:", registrationData);
-            const response = await api.post("users/register", registrationData);
+            const response = await api.post("users/register-user", registrationData);
             console.log("Registration successful:", response.data);
         } catch (error: any) {
             console.error("Registration failed:", error);

@@ -20,7 +20,7 @@ namespace DeskBookingService.Controllers
             _mapper = mapper;
         }
 
-        [HttpGet("GetReservations")]
+        [HttpGet("get-reservations")]
         public async Task<IActionResult> GetReservations()
         {
             var reservations = await _context.Reservations.ToListAsync();

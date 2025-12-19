@@ -1,8 +1,8 @@
-namespace DeskBookingService.Models;
+namespace DeskBookingService.Models.AdminDTOs;
 
-public class User
+public class AdminUserDto
 {
-    public string? Id { get; set; }
+    public required string Id { get; set; }
     public required string Name { get; set; }
     public required string Surname { get; set; }
     public required string Password { get; set; }

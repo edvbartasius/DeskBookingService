@@ -17,7 +17,7 @@ namespace DeskBookingService.Controllers
             _context = context;
             _mapper = mapper;
         }
-        [HttpGet("GetUsers")]
+        [HttpGet("get-users")]
         public async Task<IActionResult> GetUsers()
         {
             var users = await _context.Users.ToListAsync();
@@ -25,7 +25,7 @@ namespace DeskBookingService.Controllers
             return Ok(userDtos);
         }
 
-        [HttpPost("Register")]
+        [HttpPost("register-user")]
         public async Task<IActionResult> Register([FromBody] UserDto userDto)
         {
             try
@@ -38,6 +38,10 @@ namespace DeskBookingService.Controllers
                 if (!IsValidPassword(user.Password))
                 {
                     return BadRequest("Password must be at least 8 characters long and contain at least one digit.");
+                }
+                if (!IsValidEmail(user.Email))
+                {
+                    return BadRequest("Invalid email format.");
                 }
                 user.Id = Guid.NewGuid().ToString();
                 user.Role = UserRole.User;
@@ -80,6 +84,24 @@ namespace DeskBookingService.Controllers
             if (!password.Any(char.IsDigit))
                 return false;
             return true;
+        }
+
+        /// <summary>
+        /// Validates the email format
+        /// </summary>
+        /// <param name="email">Email string to validate</param>
+        /// <returns>True if email is valid</returns>
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

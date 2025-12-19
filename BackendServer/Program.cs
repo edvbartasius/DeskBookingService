@@ -1,4 +1,5 @@
 using DeskBookingService.DatabaseSeeder;
+using DeskBookingService.Configurations;
 using Microsoft.Extensions.DependencyInjection;
 using Mapster;
 
@@ -7,8 +8,16 @@ DotNetEnv.Env.Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Mapster
+MapsterConfiguration.Configure();
+
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 builder.Services.AddDbContext<AppDbContext>();
 builder.Services.AddMapster();
 // Add Swagger services

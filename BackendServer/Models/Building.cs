@@ -6,8 +6,3 @@ public class Building
     public required string Name { get; set; }
     public ICollection<Desk> Desks { get; set; } = new List<Desk>();
 }
-
-public class BuildingDto
-{
-    public required string Name { get; set; }
-}

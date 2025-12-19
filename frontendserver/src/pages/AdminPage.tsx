@@ -1,6 +1,5 @@
-// import React from "react";
-// import { Container, Row, Col, Card } from "react-bootstrap";
 import ExpandableCardContainer, { CardConfig } from "../components/ExpandableCardContainer.tsx";
+import DatabaseViewer from "../components/DatabaseViewer/DatabaseViewer.tsx";
 
 const AdminPage = () => {
   const cards: CardConfig[] = [
@@ -16,7 +15,7 @@ const AdminPage = () => {
             title: "Database Viewer",
             description: "View and manage database records",
             allowExpand: true,
-            content: undefined
+            content: <DatabaseViewer />
         }
     ];
 

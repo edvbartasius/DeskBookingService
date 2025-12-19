@@ -31,9 +31,24 @@ public static class DatabaseSeeder
                 Name = "Main Office",
                 Desks = new List<Desk>
                 {
-                    new Desk { Id = 101, Description = "Near window", Status = DeskStatus.Available },
-                    new Desk { Id = 102, Description = "Corner desk", Status = DeskStatus.Booked },
-                    new Desk { Id = 103, Description = "Quiet area", Status = DeskStatus.Unavailable },
+                    new Desk { Id = 101, Description = "Near window", BuildingId = 1 },
+                    new Desk { Id = 102, Description = "Corner desk", BuildingId = 1 },
+                    new Desk { Id = 103, Description = "Quiet area", BuildingId = 1 },
+                    new Desk { Id = 104, Description = "Near window", BuildingId = 1 },
+                    new Desk { Id = 105, Description = "Corner desk", BuildingId = 1 },
+                    new Desk { Id = 106, Description = "Quiet area", BuildingId = 1 },
+                    new Desk { Id = 107, Description = "Near window", BuildingId = 1 },
+                    new Desk { Id = 108, Description = "Corner desk", BuildingId = 1 },
+                    new Desk { Id = 109, Description = "Quiet area", BuildingId = 1 },
+                    new Desk { Id = 110, Description = "Near window", BuildingId = 1 },
+                    new Desk { Id = 111, Description = "Corner desk", BuildingId = 1 },
+                    new Desk { Id = 112, Description = "Quiet area", BuildingId = 1 },
+                    new Desk { Id = 113, Description = "Near window", BuildingId = 1 },
+                    new Desk { Id = 114, Description = "Corner desk", BuildingId = 1 },
+                    new Desk { Id = 115, Description = "Quiet area", BuildingId = 1 },
+                    new Desk { Id = 116, Description = "Near window", BuildingId = 1 },
+                    new Desk { Id = 117, Description = "Corner desk", BuildingId = 1 },
+                    new Desk { Id = 118, Description = "Quiet area", BuildingId = 1 },
                 }
             },
             new Building
@@ -41,8 +56,8 @@ public static class DatabaseSeeder
                 Name = "Annex Building",
                 Desks = new List<Desk>
                 {
-                    new Desk { Id = 104, Description = "Quiet area", Status = DeskStatus.Unavailable },
-                    new Desk { Id = 105, Description = "Next to kitchen", Status = DeskStatus.Available }
+                    new Desk { Id = 119, Description = "Quiet area", BuildingId = 2 },
+                    new Desk { Id = 120, Description = "Next to kitchen", BuildingId = 2 }
                 }
             }
         };

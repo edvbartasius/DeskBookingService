@@ -8,24 +8,24 @@ using MapsterMapper;
 namespace DeskBookingService.Controllers
 {
     [ApiController]
-    [Route("api/desks")]
-    public class DeskController : ControllerBase
+    [Route("api/buildings")]
+    public class BuildingController : ControllerBase
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
 
-        public DeskController(AppDbContext context, IMapper mapper)
+        public BuildingController(AppDbContext context, IMapper mapper)
         {
             _context = context;
             _mapper = mapper;
         }
 
-        [HttpGet("get-desks")]
-        public async Task<IActionResult> GetDesks()
+        [HttpGet("get-buildings")]
+        public async Task<IActionResult> GetBuildings()
         {
-            var desks = await _context.Desks.ToListAsync();
-            var deskDtos = _mapper.Map<List<DeskDto>>(desks);
-            return Ok(deskDtos);
+            var buildings = await _context.Buildings.ToListAsync();
+            var buildingDtos = _mapper.Map<List<BuildingDto>>(buildings);
+            return Ok(buildingDtos);
         }
     }
 }
