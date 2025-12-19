@@ -17,10 +17,10 @@ export enum TableName {
 }
 
 export interface User {
-    id: string;
+    id?: string;
     name: string;
     surname: string;
-    email: string;
+    email?: string;
     password?: string; // password may be omitted when DTOs are returned
     role: UserRole;
 }

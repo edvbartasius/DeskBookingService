@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Modal, Form, Button } from "react-bootstrap";
 import api from "../services/api.ts";
+import { useUser } from "../contexts/UserContext.tsx"
 
 interface LoginModalProps {
     show: boolean;
@@ -12,6 +13,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const { setUser } = useUser();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -23,13 +25,22 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
             };
             console.log("Submitting login data:", loginData);
             const response = await api.post("users/login-user", loginData);
-            if (response.status == 200) { // success
-                console.log("Login successfull", response.data);
+            if (response.status === 200) { // success
+                // TODO: Remove password from DTO when returning User object from backend
+                console.log("Login successful", response.data);
+                console.log("User role from backend:", response.data.role);
+
+                // Store User context for session-like functionality
+                setUser({
+                    name: response.data.name,
+                    surname: response.data.surname,
+                    role: response.data.role
+                })
                 onHide(); // Hide modal on successfull login
             } else {
                 // Display error message
-                setErrorMessage(response.data || "Login failed")
-                console.log("Login failed:", response.data)
+                setErrorMessage(response.data || "Login failed");
+                console.log("Login failed:", response.data);
             }
         } catch (error: any)
         {
