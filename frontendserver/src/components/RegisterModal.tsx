@@ -13,10 +13,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide, onSwitchToL
     const [surname, setSurname] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+        setErrorMessage("");
         try {
             const registrationData = {
                 name,
@@ -26,11 +27,20 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide, onSwitchToL
             };
             console.log("Submitting registration data:", registrationData);
             const response = await api.post("users/register-user", registrationData);
-            console.log("Registration successful:", response.data);
+            if (response.status == 200)
+            {
+                console.log("Registration successful:", response.data);
+                onHide(); // Hide modal on success
+            } else {
+                // Display error message
+                setErrorMessage(response.data || "Login failed");
+                console.log("Registration failed", response.data);
+            }
         } catch (error: any) {
             console.error("Registration failed:", error);
+            const message = error.response?.data || error.message || "An error occured during registration";
+            setErrorMessage(message);
         }
-        onHide();
     };
 
     return (
@@ -39,6 +49,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide, onSwitchToL
                 <Modal.Title>Register</Modal.Title>
             </Modal.Header>
             <Modal.Body>
+                {errorMessage && (
+                    <div className="alert alert-danger" role="alert">
+                        {errorMessage}
+                    </div>
+                )}
                 <Form onSubmit={handleSubmit}>
                     <Form.Group className="mb-3">
                         <Form.Label>Name</Form.Label>
