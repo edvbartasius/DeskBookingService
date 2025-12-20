@@ -1,0 +1,79 @@
+// Backend DTO types matching C# models
+
+export enum DeskType {
+  Standard = 0,
+  Conference = 1
+}
+
+export enum DeskStatus {
+  Available = 0,
+  Booked = 1,
+  Unavailable = 2
+}
+
+export interface TimeSpanDto {
+  id: number;
+  startTime: string; // TimeOnly from backend
+  endTime: string;
+  status: number;
+  cancelledAt?: string;
+}
+
+export interface DeskDto {
+  id: number;
+  description?: string;
+  buildingId: number;
+  positionX: number; // Grid column (0-based)
+  positionY: number; // Grid row (0-based)
+  type: DeskType;
+  status?: DeskStatus; // Will be calculated on frontend
+  bookedTimeSpans?: TimeSpanDto[];
+}
+
+export interface FloorPlanDto {
+  buildingName?: string;
+  floorPlanWidth: number; // Number of grid columns
+  floorPlanHeight: number; // Number of grid rows
+  floorPlanDesks?: DeskDto[];
+}
+
+// Component Props
+export interface FloorPlanCanvasProps {
+  floorPlan: FloorPlanDto;
+  selectedDate?: Date;
+  selectedTime?: string;
+  onDeskClick?: (desk: DeskDto) => void;
+  selectedDeskId?: number;
+  cellSize?: number;
+}
+
+export interface DeskTileProps {
+  desk: DeskDto;
+  onClick?: () => void;
+  isSelected?: boolean;
+  cellSize: number;
+}
+
+// Internal state types
+export interface ViewBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface Point {
+  x: number;
+  y: number;
+}
+
+export interface ContainerSize {
+  width: number;
+  height: number;
+}
+
+export interface DeskColors {
+  fill: string;
+  stroke: string;
+  hover: string;
+}
