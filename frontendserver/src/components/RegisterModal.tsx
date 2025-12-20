@@ -27,7 +27,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ show, onHide, onSwitchToL
             };
             console.log("Submitting registration data:", registrationData);
             const response = await api.post("users/register-user", registrationData);
-            if (response.status == 200)
+            if (response.status === 200)
             {
                 console.log("Registration successful:", response.data);
                 onHide(); // Hide modal on success

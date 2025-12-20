@@ -9,13 +9,19 @@ import {
   getDeskStatusLabel,
   getStatusBadgeVariant
 } from "../components/FloorPlan/index.tsx";
-import { Container, Row, Col, Card, Button, Badge } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Badge, Alert } from "react-bootstrap";
+import { DateListSelector, ReservationList } from "../components/Reservation/index.ts";
+import { DailyReservation, DateRange, TimeSlot } from "../types/reservation";
+import { v4 as uuidv4 } from 'uuid';
 
 const DeskPage = () => {
   const [floorPlan, setFloorPlan] = useState<FloorPlanDto | null>(null);
   const [selectedDesk, setSelectedDesk] = useState<DeskDto | null>(null);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [loading, setLoading] = useState(true);
+
+  // Multi-date reservation state
+  const [dateRange, setDateRange] = useState<DateRange>({ start: null, end: null });
+  const [reservations, setReservations] = useState<DailyReservation[]>([]);
 
   // Fetch floor plan from backend (replace with actual API call)
   useEffect(() => {
@@ -297,11 +303,106 @@ const DeskPage = () => {
     setSelectedDesk(desk);
   };
 
-  const handleBookDesk = () => {
-    if (selectedDesk) {
-      alert(`Booking desk ${selectedDesk.description} (ID: ${selectedDesk.id})`);
-      // TODO: Implement actual booking logic
+  // Generate dates from range
+  const handleGenerateDates = () => {
+    if (!dateRange.start || !dateRange.end) return;
+
+    const dates: DailyReservation[] = [];
+    const currentDate = new Date(dateRange.start);
+    const endDate = new Date(dateRange.end);
+
+    while (currentDate <= endDate) {
+      dates.push({
+        date: new Date(currentDate),
+        timeSlots: [
+          {
+            id: uuidv4(),
+            startTime: "09:00:00",
+            endTime: "17:00:00"
+          }
+        ]
+      });
+      currentDate.setDate(currentDate.getDate() + 1);
     }
+
+    setReservations(dates);
+  };
+
+  // Update a specific reservation
+  const handleUpdateReservation = (index: number, updated: DailyReservation) => {
+    const newReservations = [...reservations];
+    newReservations[index] = updated;
+    setReservations(newReservations);
+  };
+
+  // Remove a specific reservation
+  const handleRemoveReservation = (index: number) => {
+    setReservations(reservations.filter((_, i) => i !== index));
+  };
+
+  // Copy time slots from one day to all others
+  const handleCopyToAll = (sourceIndex: number) => {
+    const sourceSlots = reservations[sourceIndex].timeSlots;
+    const newReservations = reservations.map((reservation, index) => {
+      if (index === sourceIndex) return reservation;
+
+      return {
+        ...reservation,
+        timeSlots: sourceSlots.map(slot => ({
+          ...slot,
+          id: uuidv4() // Generate new IDs for copied slots
+        }))
+      };
+    });
+    setReservations(newReservations);
+  };
+
+  // Clear all reservations
+  const handleClearAll = () => {
+    setReservations([]);
+    setDateRange({ start: null, end: null });
+  };
+
+  // Book desk with multiple reservations
+  const handleBookDesk = () => {
+    if (!selectedDesk) {
+      alert("Please select a desk first");
+      return;
+    }
+
+    if (reservations.length === 0) {
+      alert("Please add at least one reservation date");
+      return;
+    }
+
+    // Validate all reservations
+    const hasErrors = reservations.some(reservation => {
+      return reservation.timeSlots.some(
+        slot => !slot.startTime || !slot.endTime || slot.startTime >= slot.endTime
+      );
+    });
+
+    if (hasErrors) {
+      alert("Please fix all time slot errors before booking");
+      return;
+    }
+
+    // Format booking request
+    const bookingRequest = {
+      deskId: selectedDesk.id,
+      reservations: reservations.map(reservation => ({
+        date: reservation.date.toISOString().split('T')[0],
+        timeSlots: reservation.timeSlots.map(slot => ({
+          startTime: slot.startTime,
+          endTime: slot.endTime
+        }))
+      }))
+    };
+
+    console.log("Booking request:", bookingRequest);
+    alert(`Booking desk ${selectedDesk.description} for ${reservations.length} day(s).\nCheck console for details.`);
+
+    // TODO: Implement actual API call
   };
 
   return (
@@ -309,24 +410,45 @@ const DeskPage = () => {
       {/* Header */}
       <Row className="mb-4">
         <Col>
-          <div className="d-flex justify-content-between align-items-center">
-            <h1>Desk Booking</h1>
-            <input
-              type="date"
-              value={selectedDate.toISOString().split('T')[0]}
-              onChange={(e) => setSelectedDate(new Date(e.target.value))}
-              className="form-control"
-              style={{ width: 'auto' }}
-            />
-          </div>
+          <h1>Desk Booking</h1>
         </Col>
       </Row>
 
+      {/* Date Range Selector */}
+      <Row className="mb-4">
+        <Col>
+          <DateListSelector />
+        </Col>
+      </Row>
+      {/* <Row className="mb-4">
+        <Col>
+          <DateListSelector
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            onGenerateDates={handleGenerateDates}
+            disabled={loading}
+          />
+        </Col>
+      </Row> */}
+
       {/* Main Content */}
-      <Row style={{ height: 'calc(100vh - 200px)' }}>
+      <Row>
         {/* Floor Plan Canvas */}
-        <Col lg={8} className="mb-3">
-          <Card className="h-100">
+        <Col lg={7} className="mb-3">
+          <Card style={{ height: '70vh' }}>
+            <Card.Header>
+              <h5 className="mb-0">Select a Desk</h5>
+              {selectedDesk && (
+                <div className="mt-2">
+                  <Badge bg="primary" className="me-2">
+                    Selected: {selectedDesk.description}
+                  </Badge>
+                  <Badge bg={getStatusBadgeVariant(selectedDesk.status)}>
+                    {getDeskTypeLabel(selectedDesk.type)}
+                  </Badge>
+                </div>
+              )}
+            </Card.Header>
             <Card.Body className="p-0">
               {loading ? (
                 <div className="d-flex justify-content-center align-items-center h-100">
@@ -337,14 +459,47 @@ const DeskPage = () => {
               ) : floorPlan ? (
                 <FloorPlanCanvas
                   floorPlan={floorPlan}
-                  selectedDate={selectedDate}
+                  selectedDate={new Date()}
                   onDeskClick={handleDeskClick}
                   selectedDeskId={selectedDesk?.id}
                 />
               ) : (
                 <div className="d-flex justify-content-center align-items-center h-100">
-                  <div className="alert alert-danger">Failed to load floor plan</div>
+                  <Alert variant="danger">Failed to load floor plan</Alert>
                 </div>
+              )}
+            </Card.Body>
+          </Card>
+        </Col>
+
+        {/* Reservation List */}
+        <Col lg={5} className="mb-3">
+          <Card style={{ height: '70vh' }}>
+            <Card.Header className="d-flex justify-content-between align-items-center">
+              <h5 className="mb-0">Reservation Details</h5>
+              {selectedDesk && reservations.length > 0 && (
+                <Button
+                  variant="success"
+                  size="sm"
+                  onClick={handleBookDesk}
+                >
+                  Book Now
+                </Button>
+              )}
+            </Card.Header>
+            <Card.Body style={{ overflowY: 'auto' }}>
+              {!selectedDesk ? (
+                <Alert variant="info">
+                  Please select a desk from the floor plan to start booking.
+                </Alert>
+              ) : (
+                <ReservationList
+                  reservations={reservations}
+                  onUpdateReservation={handleUpdateReservation}
+                  onRemoveReservation={handleRemoveReservation}
+                  onCopyToAll={handleCopyToAll}
+                  onClearAll={handleClearAll}
+                />
               )}
             </Card.Body>
           </Card>

@@ -56,11 +56,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
-        [HttpGet("availability")]
-        public async Task<IActionResult> GetAvailability(int deskId, DateOnly date)
-        {
-            throw new NotImplementedException();
-        }
+        // [HttpGet("availability")]
+        // public async Task<IActionResult> GetAvailability(int deskId, DateOnly date)
+        // {
+        //     throw new NotImplementedException();
+        // }
 
         [HttpGet("unavailability")]
         public async Task<IActionResult> GetUnavailableTimeSpans(int deskId, DateOnly date)
