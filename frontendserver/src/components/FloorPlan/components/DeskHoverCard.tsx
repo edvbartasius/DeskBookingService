@@ -74,25 +74,6 @@ const DeskHoverCard: React.FC<DeskHoverCardProps> = ({ desk, cellSize }) => {
               </span>
             </div>
           )}
-
-          {/* Booked Time Spans */}
-          {desk.bookedTimeSpans && desk.bookedTimeSpans.length > 0 && (
-            <div className="mt-2">
-              <small className="fw-bold d-block mb-1">Booked Times:</small>
-              <div className="small text-muted">
-                {desk.bookedTimeSpans.slice(0, 3).map((timeSpan, idx) => (
-                  <div key={idx} className="text-truncate" style={{ fontSize: '0.75rem' }}>
-                    {timeSpan.startTime} - {timeSpan.endTime}
-                  </div>
-                ))}
-                {desk.bookedTimeSpans.length > 3 && (
-                  <div className="text-secondary fst-italic" style={{ fontSize: '0.75rem' }}>
-                    +{desk.bookedTimeSpans.length - 3} more
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </foreignObject>

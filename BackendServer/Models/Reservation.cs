@@ -12,7 +12,6 @@ public class Reservation
     // Navigation properties
     public User? User { get; set;}
     public Desk? Desk { get; set;}
-    public ICollection<ReservationTimeSpan> TimeSpans { get; set;} = new List<ReservationTimeSpan>();
 
     // Audit fields
     public DateTime CreatedAt {get; set;} = DateTime.UtcNow;

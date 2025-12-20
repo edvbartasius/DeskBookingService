@@ -1,12 +1,5 @@
-export interface TimeSlot {
-  id: string; // Unique identifier for React keys
-  startTime: string; // "HH:mm:ss" format (e.g., "09:00:00")
-  endTime: string;   // "HH:mm:ss" format (e.g., "17:00:00")
-}
-
 export interface DailyReservation {
   date: Date;
-  timeSlots: TimeSlot[];
 }
 
 export interface DateRange {
@@ -16,11 +9,5 @@ export interface DateRange {
 
 export interface BookingRequest {
   deskId: number;
-  reservations: {
-    date: string; // ISO date format "YYYY-MM-DD"
-    timeSlots: {
-      startTime: string;
-      endTime: string;
-    }[];
-  }[];
+  reservationDates: string[]; // Array of ISO date strings "YYYY-MM-DD"
 }

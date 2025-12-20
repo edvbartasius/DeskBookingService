@@ -12,7 +12,6 @@ public class AppDbContext : DbContext
     public DbSet<Building> Buildings { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
-    public DbSet<ReservationTimeSpan> ReservationTimeSpans { get; set;}
     public DbSet<OperatingHours> OperatingHours { get; set;}
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -44,12 +43,9 @@ public class AppDbContext : DbContext
             .HasForeignKey(r => r.DeskId)
             .OnDelete(DeleteBehavior.Cascade);  // Delete reservations if desk deleted
 
-        // ReservationTimeSpan -> Reservation
-        modelBuilder.Entity<ReservationTimeSpan>()
-            .HasOne(ts => ts.Reservation)
-            .WithMany(r => r.TimeSpans)
-            .HasForeignKey(ts => ts.ReservationId)
-            .OnDelete(DeleteBehavior.Cascade);  // Delete timespans if reservation deleted
+        // Ensure only one active reservation per desk per date
+        modelBuilder.Entity<Reservation>()
+            .HasIndex(r => new { r.DeskId, r.ReservationDate, r.Status });
 
         // OperatingHourse -> Building
         modelBuilder.Entity<OperatingHours>()

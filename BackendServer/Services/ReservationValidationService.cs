@@ -6,38 +6,60 @@ namespace DeskBookingService.Services;
 public class ReservationValidationService
 {
     private readonly AppDbContext _context;
+
     public ReservationValidationService(AppDbContext context)
     {
         _context = context;
     }
-    // Check if time range is withing operating hours
-    public bool ValidateTimeRange()
+
+    /// <summary>
+    /// Check if a desk is available for the specified date (no conflicting active reservations)
+    /// </summary>
+    public async Task<bool> IsDeskAvailable(int deskId, DateOnly date, int? excludeReservationId = null)
     {
-        throw new NotImplementedException();
+        var conflictingReservation = await _context.Reservations
+            .Where(r =>
+                r.DeskId == deskId &&
+                r.ReservationDate == date &&
+                r.Status == Models.ReservationStatus.Active &&
+                (excludeReservationId == null || r.Id != excludeReservationId))
+            .AnyAsync();
+
+        return !conflictingReservation;
     }
-    // Check for overlapping reservations on the same desk
-    public async Task<bool> ValidateNoConflicts(int deskId, DateOnly date, TimeOnly startTime, TimeOnly endTime, int? excludeReservationId = null)
+
+    /// <summary>
+    /// Check if a desk is available for a date range
+    /// </summary>
+    public async Task<(bool IsAvailable, List<DateOnly> ConflictingDates)> IsDeskAvailableForDateRange(
+        int deskId,
+        DateOnly startDate,
+        DateOnly endDate,
+        int? excludeReservationId = null)
     {
-        var conflictingSpans = await _context.ReservationTimeSpans
-            .Include(ts => ts.Reservation)
-            .Where(ts => 
-                ts.Reservation!.DeskId == deskId &&
-                ts.Reservation.ReservationDate == date &&
-                ts.Reservation.Status == Models.ReservationStatus.Active &&
-                ts.Status == Models.ReservationStatus.Active &&
-                ts.StartTime < endTime &&
-                ts.EndTime > startTime &&
-                (excludeReservationId == null || ts.ReservationId != excludeReservationId))
+        // Get all existing reservations for this desk in the date range
+        var conflictingDates = await _context.Reservations
+            .Where(r =>
+                r.DeskId == deskId &&
+                r.ReservationDate >= startDate &&
+                r.ReservationDate <= endDate &&
+                r.Status == Models.ReservationStatus.Active &&
+                (excludeReservationId == null || r.Id != excludeReservationId))
+            .Select(r => r.ReservationDate)
             .ToListAsync();
-        return !conflictingSpans.Any(); // True, if no conflicts
+
+        return (conflictingDates.Count == 0, conflictingDates);
     }
-    
-    public async Task<(bool IsValid, string? ErrorMessage)> ValidateOperatingHours(int buildingId, DateOnly date, TimeOnly startTime, TimeOnly endTime)
+
+    /// <summary>
+    /// Validate that the reservation date is within operating hours for the building
+    /// </summary>
+    public async Task<(bool IsValid, string? ErrorMessage)> ValidateOperatingHours(int buildingId, DateOnly date)
     {
         var dayOfWeek = date.DayOfWeek;
 
         var operatingHours = await _context.OperatingHours
-            .FirstOrDefaultAsync(oh => 
+            .FirstOrDefaultAsync(oh =>
                 oh.BuildingId == buildingId &&
                 oh.DayOfWeek == dayOfWeek);
 
@@ -52,29 +74,102 @@ public class ReservationValidationService
         {
             return (false, $"Building is closed on {dayOfWeek}");
         }
-        // Check if times are withing operating hours
-        if (startTime < operatingHours.OpeningTime)
-            return (false, $"Start time {startTime} is before opening time {operatingHours.OpeningTime}");
-        if (endTime > operatingHours.ClosingTime)
-            return (false, $"End time {endTime} is after closing time {operatingHours.ClosingTime}");
 
-        // Handle midnight crossing (overnight operations)
-        // Example: Opening = 22:00, Closing = 06:00
-        if (operatingHours.ClosingTime < operatingHours.OpeningTime)
+        return (true, null);
+    }
+
+    /// <summary>
+    /// Validate operating hours for a date range
+    /// </summary>
+    public async Task<(bool IsValid, string? ErrorMessage, List<DateOnly> ClosedDates)> ValidateOperatingHoursForDateRange(
+        int buildingId,
+        DateOnly startDate,
+        DateOnly endDate)
+    {
+        var closedDates = new List<DateOnly>();
+
+        // Get all operating hours for this building
+        var operatingHoursList = await _context.OperatingHours
+            .Where(oh => oh.BuildingId == buildingId)
+            .ToListAsync();
+
+        // Check each date in the range
+        for (var date = startDate; date <= endDate; date = date.AddDays(1))
         {
-            bool afterOpening = startTime >= operatingHours.OpeningTime && endTime >= operatingHours.OpeningTime;
-            bool beforeClosing = startTime <= operatingHours.ClosingTime && endTime <= operatingHours.ClosingTime;
+            var dayOfWeek = date.DayOfWeek;
+            var operatingHours = operatingHoursList.FirstOrDefault(oh => oh.DayOfWeek == dayOfWeek);
 
-            if (!afterOpening && !beforeClosing)
+            if (operatingHours == null)
             {
-                return (false, "Reservation must be entirely within the overnight operating hours");
+                return (false, $"No operating hours configured for {dayOfWeek}", closedDates);
             }
 
-            // Check: can't span across midnight in a single reservation
-            if (startTime >= operatingHours.OpeningTime && endTime <= operatingHours.ClosingTime)
+            if (operatingHours.IsClosed)
             {
-                return (false, "Reservation cannot span across midnight");
+                closedDates.Add(date);
             }
+        }
+
+        if (closedDates.Any())
+        {
+            return (false, $"Building is closed on {closedDates.Count} day(s) in the selected range", closedDates);
+        }
+
+        return (true, null, closedDates);
+    }
+
+    /// <summary>
+    /// Validate that the date is not in the past
+    /// </summary>
+    public (bool IsValid, string? ErrorMessage) ValidateDateNotInPast(DateOnly date)
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        if (date < today)
+        {
+            return (false, $"Cannot make reservations for past dates. Date: {date}, Today: {today}");
+        }
+
+        return (true, null);
+    }
+
+    /// <summary>
+    /// Comprehensive validation for creating a reservation
+    /// </summary>
+    public async Task<(bool IsValid, string? ErrorMessage)> ValidateReservation(
+        int deskId,
+        DateOnly date,
+        int? excludeReservationId = null)
+    {
+        // Check date not in past
+        var dateValidation = ValidateDateNotInPast(date);
+        if (!dateValidation.IsValid)
+        {
+            return dateValidation;
+        }
+
+        // Get desk with building info
+        var desk = await _context.Desks
+            .Include(d => d.Building)
+            .FirstOrDefaultAsync(d => d.Id == deskId);
+
+        if (desk == null)
+        {
+            return (false, $"Desk with ID {deskId} not found");
+        }
+
+        // Validate operating hours
+        var operatingHoursValidation = await ValidateOperatingHours(desk.BuildingId, date);
+        if (!operatingHoursValidation.IsValid)
+        {
+            return operatingHoursValidation;
+        }
+
+        // Check for conflicts
+        var isAvailable = await IsDeskAvailable(deskId, date, excludeReservationId);
+        if (!isAvailable)
+        {
+            return (false, $"Desk {deskId} is already reserved for {date}");
         }
 
         return (true, null);

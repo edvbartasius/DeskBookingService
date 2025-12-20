@@ -12,6 +12,7 @@ public class ReservationDto
     public DateTime CreatedAt { get; set; }
     public DateTime? CanceledAt { get; set; }
 
-    // Time spans (supports multiple time periods per day)
-    public List<TimeSpanDto> TimeSpans { get; set; } = new List<TimeSpanDto>();
+    // Optional user and desk details (for joined queries)
+    public UserDto? User { get; set; }
+    public DeskDto? Desk { get; set; }
 }

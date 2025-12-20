@@ -255,7 +255,8 @@ namespace DeskBookingService.Controllers
             try
             {
                 var reservations = await _context.Reservations
-                    .Include(r => r.TimeSpans)  // Include TimeSpans collection
+                    .Include(r => r.User)
+                    .Include(r => r.Desk)
                     .ToListAsync();
                 var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
                 return Ok(reservationDtos);

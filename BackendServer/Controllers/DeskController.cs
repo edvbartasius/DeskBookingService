@@ -62,23 +62,122 @@ namespace DeskBookingService.Controllers
         //     throw new NotImplementedException();
         // }
 
-        [HttpGet("unavailability")]
-        public async Task<IActionResult> GetUnavailableTimeSpans(int deskId, DateOnly date)
+        /// <summary>
+        /// Get desk availability for a date range
+        /// </summary>
+        [HttpGet("{id}/availability")]
+        public async Task<IActionResult> GetDeskAvailability(
+            int id,
+            [FromQuery] DateOnly startDate,
+            [FromQuery] DateOnly endDate)
         {
-            try
+            var desk = await _context.Desks.FindAsync(id);
+            if (desk == null)
             {
-                var timeSpans = await _deskAvailabilityService.GetDeskBookedTimeSpans(deskId, date);
-                return Ok(timeSpans);
-            } catch (DbException ex)
-            {
-                return StatusCode(500,  "An error occurred while processing your request: " + ex.Message);
+                return NotFound();
             }
+
+            var statusByDate = await _deskAvailabilityService.GetDeskStatusForDateRange(id, startDate, endDate);
+
+            var result = new DeskAvailabilityDto
+            {
+                DeskId = desk.Id,
+                Description = desk.Description,
+                PositionX = desk.PositionX,
+                PositionY = desk.PositionY,
+                Type = desk.Type,
+                StatusByDate = new List<DeskStatusDto>()
+            };
+
+            foreach (var kvp in statusByDate)
+            {
+                var statusDto = new DeskStatusDto
+                {
+                    DeskId = id,
+                    Date = kvp.Key,
+                    Status = kvp.Value
+                };
+
+                // If booked, get reserver info
+                if (kvp.Value == DeskStatus.Booked)
+                {
+                    var reservation = await _deskAvailabilityService.GetDeskReservation(id, kvp.Key);
+                    if (reservation != null && reservation.User != null)
+                    {
+                        statusDto.ReservedByFirstName = reservation.User.Name;
+                        statusDto.ReservedByLastName = reservation.User.Surname;
+                        statusDto.ReservedByUserId = reservation.User.Id;
+                    }
+                }
+
+                result.StatusByDate.Add(statusDto);
+            }
+
+            return Ok(result);
         }
 
-        [HttpGet("available-desks")]
-        public async Task<IActionResult> GetAvailableDesks(int buildingId, int floorNumber, DateOnly date, TimeOnly start, TimeOnly end)
+        /// <summary>
+        /// Get all desks with their availability for a specific date
+        /// </summary>
+        [HttpGet("availability/by-date")]
+        public async Task<IActionResult> GetDesksAvailabilityForDate(
+            [FromQuery] int buildingId,
+            [FromQuery] DateOnly date)
         {
-            throw new NotImplementedException();
+            var desks = await _context.Desks
+                .Where(d => d.BuildingId == buildingId)
+                .ToListAsync();
+
+            var result = new List<DeskAvailabilityDto>();
+
+            foreach (var desk in desks)
+            {
+                var status = await _deskAvailabilityService.GetDeskStatus(desk.Id, date);
+                var statusDto = new DeskStatusDto
+                {
+                    DeskId = desk.Id,
+                    Date = date,
+                    Status = status
+                };
+
+                // If booked, get reserver info
+                if (status == DeskStatus.Booked)
+                {
+                    var reservation = await _deskAvailabilityService.GetDeskReservation(desk.Id, date);
+                    if (reservation != null && reservation.User != null)
+                    {
+                        statusDto.ReservedByFirstName = reservation.User.Name;
+                        statusDto.ReservedByLastName = reservation.User.Surname;
+                        statusDto.ReservedByUserId = reservation.User.Id;
+                    }
+                }
+
+                result.Add(new DeskAvailabilityDto
+                {
+                    DeskId = desk.Id,
+                    Description = desk.Description,
+                    PositionX = desk.PositionX,
+                    PositionY = desk.PositionY,
+                    Type = desk.Type,
+                    StatusByDate = new List<DeskStatusDto> { statusDto }
+                });
+            }
+
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get all desks available for a date range (fully available for all dates)
+        /// </summary>
+        [HttpGet("available")]
+        public async Task<IActionResult> GetAvailableDesks(
+            [FromQuery] int buildingId,
+            [FromQuery] DateOnly startDate,
+            [FromQuery] DateOnly endDate)
+        {
+            var availableDesks = await _deskAvailabilityService.GetAvailableDesks(buildingId, startDate, endDate);
+            var deskDtos = _mapper.Map<List<DeskDto>>(availableDesks);
+            return Ok(deskDtos);
         }
     }
 }

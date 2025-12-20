@@ -173,12 +173,15 @@ public static class DatabaseSeeder
 
     private static List<Reservation> GetPredefinedReservations()
     {
-        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(1));
-        var dayAfterTomorrow = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(2));
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        var tomorrow = today.AddDays(1);
+        var dayAfterTomorrow = today.AddDays(2);
+        var threeDaysFromNow = today.AddDays(3);
+        var fourDaysFromNow = today.AddDays(4);
 
         return new List<Reservation>
         {
-            // Example 1: Multi-timespan reservation (morning and afternoon slots)
+            // Example 1: User 2 books desk 101 for tomorrow
             new Reservation
             {
                 Id = 1,
@@ -186,70 +189,62 @@ public static class DatabaseSeeder
                 UserId = "U2",
                 ReservationDate = tomorrow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow,
-                TimeSpans = new List<ReservationTimeSpan>
-                {
-                    new ReservationTimeSpan
-                    {
-                        Id = 1,
-                        ReservationId = 1,
-                        StartTime = new TimeOnly(8, 0),
-                        EndTime = new TimeOnly(12, 0),
-                        Status = ReservationStatus.Active
-                    },
-                    new ReservationTimeSpan
-                    {
-                        Id = 2,
-                        ReservationId = 1,
-                        StartTime = new TimeOnly(14, 0),
-                        EndTime = new TimeOnly(17, 0),
-                        Status = ReservationStatus.Active
-                    }
-                }
+                CreatedAt = DateTime.UtcNow
             },
 
-            // Example 2: Full-day conference room booking
+            // Example 2: User 2 books desk 101 for day after tomorrow (multi-day booking)
             new Reservation
             {
                 Id = 2,
+                DeskId = 101,
+                UserId = "U2",
+                ReservationDate = dayAfterTomorrow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            },
+
+            // Example 3: User 3 books conference room for tomorrow
+            new Reservation
+            {
+                Id = 3,
                 DeskId = 150,
                 UserId = "U3",
                 ReservationDate = tomorrow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow,
-                TimeSpans = new List<ReservationTimeSpan>
-                {
-                    new ReservationTimeSpan
-                    {
-                        Id = 3,
-                        ReservationId = 2,
-                        StartTime = new TimeOnly(9, 0),
-                        EndTime = new TimeOnly(16, 0),
-                        Status = ReservationStatus.Active
-                    }
-                }
+                CreatedAt = DateTime.UtcNow
             },
 
-            // Example 3: Another desk with single timespan
+            // Example 4: User 4 books desk 106 for three days from now
             new Reservation
             {
-                Id = 3,
+                Id = 4,
                 DeskId = 106,
                 UserId = "U4",
-                ReservationDate = dayAfterTomorrow,
+                ReservationDate = threeDaysFromNow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow,
-                TimeSpans = new List<ReservationTimeSpan>
-                {
-                    new ReservationTimeSpan
-                    {
-                        Id = 4,
-                        ReservationId = 3,
-                        StartTime = new TimeOnly(10, 0),
-                        EndTime = new TimeOnly(15, 30),
-                        Status = ReservationStatus.Active
-                    }
-                }
+                CreatedAt = DateTime.UtcNow
+            },
+
+            // Example 5: User 4 books desk 106 for four days from now (consecutive booking)
+            new Reservation
+            {
+                Id = 5,
+                DeskId = 106,
+                UserId = "U4",
+                ReservationDate = fourDaysFromNow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow
+            },
+
+            // Example 6: User 5 books desk 107 for tomorrow
+            new Reservation
+            {
+                Id = 6,
+                DeskId = 107,
+                UserId = "U5",
+                ReservationDate = tomorrow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow
             }
         };
     }

@@ -9,86 +9,151 @@ export type Weekday =
     | 'saturday'
     | 'sunday';
 
-/**
- * Simple start / end pair.
- * Use ISO 8601 strings (e.g. "2025-01-01T09:00:00Z") or Date objects where convenient.
- */
-export interface TimeSpan {
-    start: string | Date;
-    end: string | Date;
+export enum DeskStatus {
+    Available = 'Available',
+    Booked = 'Booked',
+    Unavailable = 'Unavailable'
+}
+
+export enum ReservationStatus {
+    Active = 0,
+    Completed = 1,
+    Cancelled = 2
+}
+
+export enum DeskType {
+    RegularDesk = 0,
+    ConferenceRoom = 1
 }
 
 /**
- * Desk representation on a floor plan with positioning metadata.
- * No actual data included — fill as needed.
+ * Desk representation matching backend DeskDto
  */
-export interface FloorPlanDesk {
-    id: string;
+export interface Desk {
+    id: number;
+    description?: string;
+    buildingId: number;
+    positionX: number;
+    positionY: number;
+    type: DeskType;
+}
+
+/**
+ * Desk with position for floor plan rendering
+ */
+export interface FloorPlanDesk extends Desk {
     label?: string;
-    buildingId?: string;
-    // position in pixels, percentages, or grid units depending on your renderer
-    posX: number;
-    posY: number;
     width?: number;
     height?: number;
     rotation?: number;
 }
 
 /**
- * Availability for a single desk on a given date.
- * Each slot indicates whether that timespan is available.
+ * User representation matching backend UserDto
  */
-// export interface DeskAvailability {
-//     deskId: string;
-//     // ISO date (yyyy-mm-dd) or Date — choose one shape for your API
-//     date: string;
-//     slots: Array<{
-//         timespan: TimeSpan;
-//         available: boolean;
-//         reservationId?: string;
-//     }>;
-//     computedAt?: string | Date;
-// }
-
-/**
- * Request payload when creating a reservation.
- */
-export interface ReservationRequest {
-    userId: string;
-    deskId: string;
-    timespan: TimeSpan;
-    purpose?: string;
-    attendees?: number;
-    // Optional recurrence support
-    recurring?: {
-        frequency: 'daily' | 'weekly' | 'monthly';
-        interval?: number; // every N units
-        until?: string | Date;
-        byWeekday?: Weekday[];
-    } | null;
-    metadata?: Record<string, any>;
-}
-
-/**
- * Representation of a user's reservation as stored/returned by the system.
- */
-export interface UserReservation {
+export interface User {
     id: string;
-    userId: string;
-    deskId: string;
-    timespan: TimeSpan;
-    status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
-    createdAt: string | Date;
-    updatedAt?: string | Date;
-    notes?: string;
-    source?: 'web' | 'mobile' | 'api';
-    metadata?: Record<string, any>;
+    name?: string;
+    surname?: string;
+    email: string;
+    role: number; // UserRole enum
 }
 
 /**
- * Building operating hours by weekday.
- * Each weekday can have zero or more open timespans.
+ * Reservation (full-day booking)
  */
-export interface BuildingHours {
-    hours: Partial<Record<Weekday, TimeSpan[]>>;
+export interface Reservation {
+    id: number;
+    userId: string;
+    deskId: number;
+    reservationDate: string; // ISO date string (yyyy-MM-dd)
+    status: ReservationStatus;
+    createdAt: string; // ISO datetime string
+    canceledAt?: string; // ISO datetime string
+    user?: User;
+    desk?: Desk;
+}
+
+/**
+ * Request payload for creating reservations
+ */
+export interface CreateReservationRequest {
+    deskId: number;
+    reservationDates: string[]; // Array of ISO date strings
+}
+
+/**
+ * Response from creating reservations
+ */
+export interface CreateReservationResult {
+    success: boolean;
+    errorMessage?: string;
+    createdReservations: Reservation[];
+    failedDates: string[];
+}
+
+/**
+ * Status for a specific desk on a specific date
+ */
+export interface DeskStatusInfo {
+    deskId: number;
+    date: string; // ISO date string
+    status: DeskStatus;
+    reservedByFirstName?: string;
+    reservedByLastName?: string;
+    reservedByUserId?: string;
+    unavailableReason?: string;
+}
+
+/**
+ * Desk availability for a date range
+ */
+export interface DeskAvailability {
+    deskId: number;
+    description?: string;
+    positionX: number;
+    positionY: number;
+    type: DeskType;
+    statusByDate: DeskStatusInfo[];
+}
+
+/**
+ * Building operating hours by weekday
+ */
+export interface OperatingHours {
+    id: number;
+    buildingId: number;
+    dayOfWeek: number; // 0 = Sunday, 6 = Saturday
+    openingTime: string; // HH:mm:ss format
+    closingTime: string; // HH:mm:ss format
+    isClosed: boolean;
+}
+
+/**
+ * Building
+ */
+export interface Building {
+    id: number;
+    name: string;
+    floorPlanWidth: number;
+    floorPlanHeight: number;
+    desks?: Desk[];
+    operatingHours?: OperatingHours[];
+}
+
+/**
+ * Floor plan with desks
+ */
+export interface FloorPlan {
+    buildingName: string;
+    floorPlanDesks: FloorPlanDesk[];
+}
+
+/**
+ * Cancel date range request
+ */
+export interface CancelDateRangeRequest {
+    deskId: number;
+    startDate: string; // ISO date string
+    endDate: string; // ISO date string
 }

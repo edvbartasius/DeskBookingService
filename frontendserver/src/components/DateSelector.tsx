@@ -1,12 +1,11 @@
-import { Form, Row, Col, Button, Card, Badge } from "react-bootstrap";
-import { DateRange } from "../../types/reservation";
+import { Button, Modal } from "react-bootstrap";
 import { useState } from "react";
 import { format, isBefore, startOfDay, addDays, startOfMonth, endOfMonth, getDay } from "date-fns";
+import { getReservationDateLabel } from "../utils/dateUtils.ts";
 
-interface DateRangeSelectorProps {
-  dateRange: DateRange;
-  onDateRangeChange: (dateRange: DateRange) => void;
-  onGenerateDates: () => void;
+interface DateSelectorProps {
+  selectedDate: Date | null;
+  onSelectedDateChange: (date: Date | null) => void;
   disabled?: boolean;
 }
 
@@ -20,33 +19,33 @@ const blackoutDates: Date[] = [
 const sameDay = (a: Date, b: Date): boolean =>
   a.toDateString() === b.toDateString();
 
-export const DateListSelector: React.FC = () => {
+export const DateSelector: React.FC<DateSelectorProps> = ({
+  selectedDate,
+  onSelectedDateChange,
+  disabled = false
+}) => {
   const today: Date = startOfDay(new Date());
-  const tomorrow: Date = addDays(today, 1);
-
-  const [selectedDates, setSelectedDates] = useState<Date[]>([tomorrow]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showModal, setShowModal] = useState(false);
 
   const isDateDisabled = (date: Date): boolean => {
     return (
       isBefore(date, today) ||
-      blackoutDates.some((d) => sameDay(d, date))
+      blackoutDates.some((d: Date) => sameDay(d, date))
     );
   };
 
   const handleDateClick = (date: Date): void => {
-    if (isDateDisabled(date)) return;
+    if (isDateDisabled(date) || disabled) return;
 
-    const exists = selectedDates.some((d) => sameDay(d, date));
+    const isSameDate = selectedDate && sameDay(selectedDate, date);
 
-    if (exists) {
-      setSelectedDates((prev) => prev.filter((d) => !sameDay(d, date)));
+    if (isSameDate) {
+      onSelectedDateChange(null);
     } else {
-      if (selectedDates.length >= 7) {
-        return;
-      }
-      setSelectedDates((prev) => [...prev, date].sort((a, b) => a.getTime() - b.getTime()));
+      onSelectedDateChange(date);
     }
+    setShowModal(false);
   };
 
   const handlePrevMonth = () => {
@@ -101,9 +100,9 @@ export const DateListSelector: React.FC = () => {
             <div key={weekIdx} className="d-flex mb-1">
               {week.map((date, dayIdx) => {
                 const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-                const isSelected = selectedDates.some((d) => sameDay(d, date));
+                const isSelected = selectedDate ? sameDay(selectedDate, date) : false;
                 const isDisabled = isDateDisabled(date);
-                const isBlackout = blackoutDates.some((d) => sameDay(d, date));
+                const isBlackout = blackoutDates.some((d: Date) => sameDay(d, date));
                 const isToday = sameDay(date, today);
 
                 return (
@@ -141,47 +140,34 @@ export const DateListSelector: React.FC = () => {
   };
 
   return (
-    <Card className="shadow-sm">
-      <Card.Body>
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <h5 className="mb-0">Select Booking Dates</h5>
-          <Badge bg={selectedDates.length >= 7 ? "danger" : "secondary"}>
-            {selectedDates.length}/7 days
-          </Badge>
-        </div>
-        {renderCalendar()}
+    <>
+      <div className="d-flex align-items-center gap-2">
+        <span className="text-muted">Date:</span>
+        <strong>
+          {selectedDate ? getReservationDateLabel(selectedDate) : "Not selected"}
+        </strong>
+        <Button
+          variant="outline-primary"
+          size="sm"
+          onClick={() => setShowModal(true)}
+          disabled={disabled}
+        >
+          {selectedDate ? "Change Date" : "Select Date"}
+        </Button>
+      </div>
 
-        {selectedDates.length > 0 && (
-          <div className="mt-3">
-            <h6 className="mb-2">Selected Dates ({selectedDates.length}):</h6>
-            <div className="d-flex flex-wrap gap-2">
-              {selectedDates.map((date, idx) => (
-                <Badge
-                  key={idx}
-                  bg="primary"
-                  className="d-flex align-items-center"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleDateClick(date)}
-                >
-                  {format(date, "MMM d, yyyy")}
-                  <span className="ms-2">&times;</span>
-                </Badge>
-              ))}
-            </div>
-            <Button
-              variant="outline-danger"
-              size="sm"
-              className="mt-2"
-              onClick={() => setSelectedDates([])}
-            >
-              Clear All
-            </Button>
-          </div>
-        )}
-      </Card.Body>
-    </Card>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Select Booking Date</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {renderCalendar()}
+        </Modal.Body>
+      </Modal>
+    </>
   );
 };
+
 export default {
-  DateListSelector
+  DateSelector
 };

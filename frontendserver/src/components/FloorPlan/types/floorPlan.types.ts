@@ -11,14 +11,6 @@ export enum DeskStatus {
   Unavailable = 2
 }
 
-export interface TimeSpanDto {
-  id: number;
-  startTime: string; // TimeOnly from backend
-  endTime: string;
-  status: number;
-  cancelledAt?: string;
-}
-
 export interface DeskDto {
   id: number;
   description?: string;
@@ -26,8 +18,7 @@ export interface DeskDto {
   positionX: number; // Grid column (0-based)
   positionY: number; // Grid row (0-based)
   type: DeskType;
-  status?: DeskStatus; // Will be calculated on frontend
-  bookedTimeSpans?: TimeSpanDto[];
+  status?: DeskStatus; // Will be calculated on frontend based on date
 }
 
 export interface FloorPlanDto {
