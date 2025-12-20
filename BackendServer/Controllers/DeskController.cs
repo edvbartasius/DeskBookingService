@@ -27,5 +27,23 @@ namespace DeskBookingService.Controllers
             var deskDtos = _mapper.Map<List<DeskDto>>(desks);
             return Ok(deskDtos);
         }
+
+        [HttpGet("floor-plan")]
+        public async Task<IActionResult> GetFloorPlan(int buildingId)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("availability")]
+        public async Task<IActionResult> GetAvailability(int deskId, DateOnly date)
+        {
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("available-desks")]
+        public async Task<IActionResult> GetAvailableDesks(int buildingId, int floorNumber, DateOnly date, TimeOnly start, TimeOnly end)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

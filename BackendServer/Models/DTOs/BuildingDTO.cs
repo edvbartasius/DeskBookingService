@@ -6,6 +6,6 @@ public class BuildingDto
     public required string Name { get; set; }
 
     // Floor plan dimensions (in grid cells)
-    public int FlootPlanWidth { get; set; }
-    public int FlootPlanHeight { get; set; }
+    public int FloorPlanWidth { get; set; }
+    public int FloorPlanHeight { get; set; }
 }

@@ -27,5 +27,38 @@ namespace DeskBookingService.Controllers
             var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
             return Ok(reservationDtos);
         }
+
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateReservation(CreateReservationDTO dto)
+        {
+            // Validate using ReservationValidationService
+            // Create reservation
+            // Return ReservationDetailsDto
+            throw new NotImplementedException();
+        }
+
+        [HttpGet("my-reservations")]
+        public async Task<IActionResult> GetUserReservations() // Retrieve user's reservations
+        {
+            // Get reservations for current user
+            // Return reservations with desk and building info
+            throw new NotImplementedException();            
+        }
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> CancelReservation(int id)
+        {   
+            // Verify ownership
+            // Set status to cancelled
+            throw new NotImplementedException();
+        }
+
+        // [HttpPost("create-multiple")]
+        // public async Task<IActionResult> CreateMultipleReservations(CreateMultipleReservationsDTO dto)
+        // {
+        //     // Accept array of time spans for same desk/day
+        //     // Validate each reservation & create records
+        //     // Return created reservations
+        //     throw new NotImplementedException();
+        // }
     }
 }
