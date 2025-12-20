@@ -81,8 +81,8 @@ public static class DatabaseSeeder
                     new Desk { Id = 201, Description = "Focus desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
                     new Desk { Id = 202, Description = "Focus desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
                     new Desk { Id = 203, Description = "Focus desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 204, PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 205, PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 204, Description = "Work desk 1", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 205, Description = "Work desk 2", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
 
                     // Small conference room
                     new Desk { Id = 250, Description = "Small Meeting Room", PositionX = 6, PositionY = 2, Type = DeskType.ConferenceRoom, BuildingId = 2 },

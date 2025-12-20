@@ -1,6 +1,6 @@
 using DeskBookingService.DatabaseSeeder;
 using DeskBookingService.Configurations;
-using Microsoft.Extensions.DependencyInjection;
+using DeskBookingService.Services;
 using Mapster;
 
 // Load .env file
@@ -19,7 +19,13 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 builder.Services.AddDbContext<AppDbContext>();
+
+// Register application services
+builder.Services.AddScoped<DeskAvailabilityService>();
+builder.Services.AddScoped<ReservationValidationService>();
+
 builder.Services.AddMapster();
+
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

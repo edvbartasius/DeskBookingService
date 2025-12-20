@@ -149,24 +149,24 @@ public class DeskAvailabilityServiceTests : IDisposable
 
     #endregion
 
-    #region GetDeskAvailability Tests
+    #region GetDeskBookedTimeSpans Tests
 
     [Fact]
-    public async Task GetDeskAvailability_NoReservations_ReturnsEmptyList()
+    public async Task GetDeskBookedTimeSpans_NoReservations_ReturnsEmptyList()
     {
         // Arrange
         var deskId = 1;
         var date = new DateOnly(2025, 12, 25);
 
         // Act
-        var bookedSpans = await _service.GetDeskAvailability(deskId, date);
+        var bookedSpans = await _service.GetDeskBookedTimeSpans(deskId, date);
 
         // Assert
         bookedSpans.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task GetDeskAvailability_OneReservation_ReturnsOneTimeSpan()
+    public async Task GetDeskBookedTimeSpans_OneReservation_ReturnsOneTimeSpan()
     {
         // Arrange
         var deskId = 1;
@@ -174,7 +174,7 @@ public class DeskAvailabilityServiceTests : IDisposable
         TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
 
         // Act
-        var bookedSpans = await _service.GetDeskAvailability(deskId, date);
+        var bookedSpans = await _service.GetDeskBookedTimeSpans(deskId, date);
 
         // Assert
         bookedSpans.Should().HaveCount(1);
@@ -183,7 +183,7 @@ public class DeskAvailabilityServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetDeskAvailability_MultipleTimeSpans_ReturnsSortedByStartTime()
+    public async Task GetDeskBookedTimeSpans_MultipleTimeSpans_ReturnsSortedByStartTime()
     {
         // Arrange
         var deskId = 1;
@@ -194,7 +194,7 @@ public class DeskAvailabilityServiceTests : IDisposable
             (new TimeOnly(11, 0), new TimeOnly(12, 0)));
 
         // Act
-        var bookedSpans = await _service.GetDeskAvailability(deskId, date);
+        var bookedSpans = await _service.GetDeskBookedTimeSpans(deskId, date);
 
         // Assert
         bookedSpans.Should().HaveCount(3);
@@ -204,35 +204,35 @@ public class DeskAvailabilityServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetDeskAvailability_DifferentDesk_ReturnsEmpty()
+    public async Task GetDeskBookedTimeSpans_DifferentDesk_ReturnsEmpty()
     {
         // Arrange
         var date = new DateOnly(2025, 12, 25);
         TestDbContextFactory.CreateTestReservation(_context, "user1", 1, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
 
         // Act - Query different desk
-        var bookedSpans = await _service.GetDeskAvailability(2, date);
+        var bookedSpans = await _service.GetDeskBookedTimeSpans(2, date);
 
         // Assert
         bookedSpans.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task GetDeskAvailability_DifferentDate_ReturnsEmpty()
+    public async Task GetDeskBookedTimeSpans_DifferentDate_ReturnsEmpty()
     {
         // Arrange
         var deskId = 1;
         TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, new DateOnly(2025, 12, 25), (new TimeOnly(10, 0), new TimeOnly(12, 0)));
 
         // Act - Query different date
-        var bookedSpans = await _service.GetDeskAvailability(deskId, new DateOnly(2025, 12, 26));
+        var bookedSpans = await _service.GetDeskBookedTimeSpans(deskId, new DateOnly(2025, 12, 26));
 
         // Assert
         bookedSpans.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task GetDeskAvailability_CancelledReservation_NotIncluded()
+    public async Task GetDeskBookedTimeSpans_CancelledReservation_NotIncluded()
     {
         // Arrange
         var deskId = 1;
@@ -242,7 +242,7 @@ public class DeskAvailabilityServiceTests : IDisposable
         _context.SaveChanges();
 
         // Act
-        var bookedSpans = await _service.GetDeskAvailability(deskId, date);
+        var bookedSpans = await _service.GetDeskBookedTimeSpans(deskId, date);
 
         // Assert
         bookedSpans.Should().BeEmpty();
