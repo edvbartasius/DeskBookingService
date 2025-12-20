@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import DeskTile from './DeskTile.tsx';
-import { FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
+import DeskHoverCard from './DeskHoverCard.tsx';
+import { DeskDto, FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
 import { useFloorPlanZoom } from '../hooks/useFloorPlanZoom.ts';
 import { useFloorPlanPan } from '../hooks/useFloorPlanPan.ts';
 import { useContainerSize } from '../hooks/useContainerSize.ts';
@@ -28,6 +29,7 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     : { width: 0, height: 0 };
 
   const [viewBox, setViewBox] = useState<ViewBox>({ x: 0, y: 0, width: 0, height: 0 });
+  const [hoveredDesk, setHoveredDesk] = useState<DeskDto | null>(null);
 
   // Custom hooks
   const containerSize = useContainerSize(containerRef);
@@ -95,7 +97,6 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
   useEffect(() => {
     fitToContainer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorPlan, containerSize]);
 
   if (!floorPlan) {
@@ -281,10 +282,14 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
             key={desk.id}
             desk={desk}
             onClick={() => onDeskClick?.(desk)}
+            onHover={setHoveredDesk}
             isSelected={selectedDeskId === desk.id}
             cellSize={GRID_CELL_SIZE}
           />
         ))}
+
+        {/* Hover card - rendered to the side of hovered desk */}
+        {hoveredDesk && <DeskHoverCard desk={hoveredDesk} cellSize={GRID_CELL_SIZE} />}
       </svg>
     </div>
   );

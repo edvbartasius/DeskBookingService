@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { DeskTileProps, DeskType } from '../types/floorPlan.types.ts';
 import { getDeskColor } from '../utils/deskHelpers.ts';
 import { getDeskPixelPosition } from '../utils/gridHelpers.ts';
@@ -10,7 +10,9 @@ import {
   SELECTION_COLOR
 } from '../config/constants.ts';
 
-const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, isSelected, cellSize }) => {
+const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, onHover, isSelected, cellSize }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   // All desks are the same size - one grid cell
   const width = cellSize;
   const height = cellSize;
@@ -18,6 +20,18 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, isSelected, cellSize
 
   // Convert grid coordinates to pixel coordinates
   const pixelPosition = getDeskPixelPosition(desk.positionX, desk.positionY);
+
+  // Handle mouse enter
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+    onHover?.(desk);
+  };
+
+  // Handle mouse leave
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    onHover?.(null);
+  };
 
   // Get desk icon/shape based on type - all desks are uniform size
   const renderDeskShape = (type: DeskType) => {
@@ -52,33 +66,28 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, isSelected, cellSize
     }
   };
 
+
+
   return (
     <g
       transform={`translate(${pixelPosition.x}, ${pixelPosition.y})`}
       onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={{ cursor: onClick ? 'pointer' : 'default' }}
       className="desk-tile"
     >
       {/* Hover effect background */}
-      <rect
-        x="0"
-        y="0"
-        width={width}
-        height={height}
-        fill="transparent"
-        className="desk-hover-area"
-        style={{
-          transition: 'fill 0.2s ease'
-        }}
-        onMouseEnter={(e) => {
-          const target = e.currentTarget;
-          target.style.fill = 'rgba(0, 0, 0, 0.05)';
-        }}
-        onMouseLeave={(e) => {
-          const target = e.currentTarget;
-          target.style.fill = 'transparent';
-        }}
-      />
+      {isHovered && (
+        <rect
+          x="0"
+          y="0"
+          width={width}
+          height={height}
+          fill="rgba(0, 0, 0, 0.1)"
+          pointerEvents="none"
+        />
+      )}
 
       {/* Desk shape */}
       {renderDeskShape(desk.type)}

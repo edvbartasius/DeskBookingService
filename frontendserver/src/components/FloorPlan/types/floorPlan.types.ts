@@ -50,6 +50,7 @@ export interface FloorPlanCanvasProps {
 export interface DeskTileProps {
   desk: DeskDto;
   onClick?: () => void;
+  onHover?: (desk: DeskDto | null) => void;
   isSelected?: boolean;
   cellSize: number;
 }

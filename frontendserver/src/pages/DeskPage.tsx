@@ -290,16 +290,7 @@ const DeskPage = () => {
     }, 500);
 
     // TODO: Replace with actual API call
-    // fetch('/api/buildings/1/floorplan')
-    //   .then(res => res.json())
-    //   .then(data => {
-    //     setFloorPlan(data);
-    //     setLoading(false);
-    //   })
-    //   .catch(err => {
-    //     console.error('Failed to fetch floor plan:', err);
-    //     setLoading(false);
-    //   });
+
   }, []);
 
   const handleDeskClick = (desk: DeskDto) => {
@@ -355,121 +346,6 @@ const DeskPage = () => {
                   <div className="alert alert-danger">Failed to load floor plan</div>
                 </div>
               )}
-            </Card.Body>
-          </Card>
-        </Col>
-
-        {/* Desk Info Panel */}
-        <Col lg={4}>
-          <Card className="h-100">
-            <Card.Header>
-              <h5 className="mb-0">Desk Information</h5>
-            </Card.Header>
-            <Card.Body className="overflow-auto">
-              {selectedDesk ? (
-                <>
-                  <div className="mb-3">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <strong>Desk ID:</strong>
-                      <span>{selectedDesk.description || `D${selectedDesk.id}`}</span>
-                    </div>
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <strong>Type:</strong>
-                      <span>{getDeskTypeLabel(selectedDesk.type)}</span>
-                    </div>
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <strong>Status:</strong>
-                      <Badge bg={getStatusBadgeVariant(selectedDesk.status)}>
-                        {getDeskStatusLabel(selectedDesk.status)}
-                      </Badge>
-                    </div>
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <strong>Position:</strong>
-                      <span className="text-muted">
-                        X: {selectedDesk.positionX}, Y: {selectedDesk.positionY}
-                      </span>
-                    </div>
-                  </div>
-
-                  {selectedDesk.bookedTimeSpans && selectedDesk.bookedTimeSpans.length > 0 && (
-                    <div className="mb-3">
-                      <h6>Booked Time Slots</h6>
-                      <ul className="list-group list-group-flush">
-                        {selectedDesk.bookedTimeSpans.map((timeSpan) => (
-                          <li key={timeSpan.id} className="list-group-item px-0">
-                            {timeSpan.startTime} - {timeSpan.endTime}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <div className="d-grid gap-2">
-                    <Button
-                      variant="primary"
-                      onClick={handleBookDesk}
-                      disabled={selectedDesk.status !== DeskStatus.Available}
-                    >
-                      {selectedDesk.status === DeskStatus.Available ? 'Book Desk' : 'Unavailable'}
-                    </Button>
-                    <Button
-                      variant="outline-secondary"
-                      onClick={() => setSelectedDesk(null)}
-                    >
-                      Clear Selection
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center text-muted py-5">
-                  <p>Click on a desk to view details and book</p>
-                </div>
-              )}
-
-              {/* Legend */}
-              <div className="mt-4 pt-4 border-top">
-                <h6>Legend</h6>
-                <div className="d-flex flex-column gap-2 mb-3">
-                  <div className="d-flex align-items-center gap-2">
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      backgroundColor: '#4CAF50',
-                      border: '1px solid #388E3C',
-                      borderRadius: '3px'
-                    }}></div>
-                    <span>Available</span>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      backgroundColor: '#F44336',
-                      border: '1px solid #D32F2F',
-                      borderRadius: '3px'
-                    }}></div>
-                    <span>Booked</span>
-                  </div>
-                  <div className="d-flex align-items-center gap-2">
-                    <div style={{
-                      width: '20px',
-                      height: '20px',
-                      backgroundColor: '#9E9E9E',
-                      border: '1px solid #616161',
-                      borderRadius: '3px'
-                    }}></div>
-                    <span>Unavailable</span>
-                  </div>
-                </div>
-                <div>
-                  <h6 className="mb-2">Desk Types</h6>
-                  <ul className="small">
-                    <li>Rectangle - Standard/Adjustable</li>
-                    <li>Circle - Standing Desk</li>
-                    <li>Oval - Conference Room</li>
-                  </ul>
-                </div>
-              </div>
             </Card.Body>
           </Card>
         </Col>
