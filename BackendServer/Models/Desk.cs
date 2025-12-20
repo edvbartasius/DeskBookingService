@@ -9,7 +9,10 @@ public class Desk
 
     public float PositionX { get; set; } // Position for desk grid visualisation
     public float PositionY { get; set; }
-    public DeskType Type { get; set;} // Visualise table size by type
+    public DeskType Type { get; set;} // To visualise table size by type
+
+    public bool IsInMaintenance { get; set; } = false;
+    public string? MaintenanceReason { get; set; }
 
     public ICollection<Reservation> Reservations { get; set;} = new List<Reservation>();
 }

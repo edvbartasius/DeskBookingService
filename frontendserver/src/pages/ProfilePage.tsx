@@ -26,6 +26,10 @@ const ProfilePage = () => {
                     <strong>Email:</strong>
                     <p className="ms-2">{loggedInUser?.email || 'N/A'}</p>
                 </div>
+                <div className="mb-3">
+                    <strong>ID:</strong>
+                    <p className="ms-2">{loggedInUser?.id || 'N/A'}</p>
+                </div>
             </Card.Body>
         );
     }

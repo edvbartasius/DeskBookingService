@@ -15,10 +15,13 @@ export interface DeskDto {
   id: number;
   description?: string;
   buildingId: number;
-  positionX: number; // Grid column (0-based)
-  positionY: number; // Grid row (0-based)
+  positionX: number; // Grid column 
+  positionY: number; // Grid row 
+  status: DeskStatus;
   type: DeskType;
-  status?: DeskStatus; // Will be calculated on frontend based on date
+  isReservedByUser: boolean;
+  reservedByFullName: string;
+  maintenanceReason?: string;
 }
 
 export interface FloorPlanDto {

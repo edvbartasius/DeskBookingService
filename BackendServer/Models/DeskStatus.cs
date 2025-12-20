@@ -9,7 +9,7 @@ public enum ReservationStatus
 
 public enum DeskStatus
 {
-    Available,    // Desk is free and can be booked
-    Booked,       // Desk is currently reserved
-    Unavailable   // Outside operating hours, desk doesn't exist or in maintenance
+    Open,         // Open for reservation
+    Reserved,     // Already reserved (by anyone)
+    Maintenance   // Under maintenance
 }

@@ -32,8 +32,10 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
 
                 // Store User context for session-like functionality
                 setUser({
+                    id: response.data.id,
                     name: response.data.name,
                     surname: response.data.surname,
+                    email: response.data.email,
                     role: response.data.role
                 })
                 onHide(); // Hide modal on successfull login

@@ -9,3 +9,9 @@ public class BuildingDto
     public int FloorPlanWidth { get; set; }
     public int FloorPlanHeight { get; set; }
 }
+
+public class BuildingListItemDto
+{
+    public required int Id { get; set;}
+    public required string Name { get; set;}
+}
