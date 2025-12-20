@@ -1,20 +1,17 @@
 import { Button, Modal } from "react-bootstrap";
 import { useState } from "react";
 import { format, isBefore, startOfDay, addDays, startOfMonth, endOfMonth, getDay } from "date-fns";
-import { getReservationDateLabel } from "../utils/dateUtils.ts";
+import { getReservationDateLabel } from "./utils/dateUtils.ts";
 
 interface DateSelectorProps {
   selectedDate: Date | null;
   onSelectedDateChange: (date: Date | null) => void;
   disabled?: boolean;
+  bookedDates?: Date[]; // Dates already booked for the selected desk
+  closedDates?: Date[]; // Dates when the office/building is closed
 }
 
-// Mock dates to blackout, fetch operating times from backend
-const blackoutDates: Date[] = [
-  new Date(2025, 0, 5),
-  new Date(2025, 0, 12),
-  new Date(2025, 0, 19),
-];
+const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const sameDay = (a: Date, b: Date): boolean =>
   a.toDateString() === b.toDateString();
@@ -22,17 +19,20 @@ const sameDay = (a: Date, b: Date): boolean =>
 export const DateSelector: React.FC<DateSelectorProps> = ({
   selectedDate,
   onSelectedDateChange,
-  disabled = false
+  disabled = false,
+  bookedDates = [],
+  closedDates = []
 }) => {
   const today: Date = startOfDay(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showModal, setShowModal] = useState(false);
 
+  const isBlackoutDate = (date: Date): boolean => {
+    return [...bookedDates, ...closedDates].some((d: Date) => sameDay(d, date));
+  };
+
   const isDateDisabled = (date: Date): boolean => {
-    return (
-      isBefore(date, today) ||
-      blackoutDates.some((d: Date) => sameDay(d, date))
-    );
+    return isBefore(date, today) || isBlackoutDate(date);
   };
 
   const handleDateClick = (date: Date): void => {
@@ -56,13 +56,13 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
   };
 
-  const renderCalendar = () => {
+  const generateCalendarDays = (): Date[][] => {
     const monthStart = startOfMonth(currentMonth);
     const monthEnd = endOfMonth(currentMonth);
     const startDate = addDays(monthStart, -getDay(monthStart));
     const endDate = addDays(monthEnd, 6 - getDay(monthEnd));
 
-    const days = [];
+    const days: Date[] = [];
     let currentDate = startDate;
 
     while (currentDate <= endDate) {
@@ -70,10 +70,64 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
       currentDate = addDays(currentDate, 1);
     }
 
-    const weeks = [];
+    const weeks: Date[][] = [];
     for (let i = 0; i < days.length; i += 7) {
       weeks.push(days.slice(i, i + 7));
     }
+
+    return weeks;
+  };
+
+  const getDayBackgroundColor = (
+    isSelected: boolean,
+    isBlackout: boolean,
+    isToday: boolean
+  ): string => {
+    if (isSelected) return "#0d6efd";
+    if (isBlackout) return "#dc3545";
+    if (isToday) return "#e9ecef";
+    return "transparent";
+  };
+
+  const getDayTextColor = (
+    isSelected: boolean,
+    isBlackout: boolean,
+    isCurrentMonth: boolean
+  ): string => {
+    if (isSelected || isBlackout) return "white";
+    if (!isCurrentMonth) return "#adb5bd";
+    return "inherit";
+  };
+
+  const renderCalendarDay = (date: Date, dayIdx: number) => {
+    const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
+    const isSelected = selectedDate ? sameDay(selectedDate, date) : false;
+    const isDisabled = isDateDisabled(date);
+    const isBlackout = isBlackoutDate(date);
+    const isToday = sameDay(date, today);
+
+    return (
+      <div
+        key={dayIdx}
+        onClick={() => !isDisabled && handleDateClick(date)}
+        className={`text-center p-2 ${isDisabled ? "text-muted" : "cursor-pointer"}`}
+        style={{
+          flex: 1,
+          cursor: isDisabled ? "not-allowed" : "pointer",
+          backgroundColor: getDayBackgroundColor(isSelected, isBlackout, isToday),
+          color: getDayTextColor(isSelected, isBlackout, isCurrentMonth),
+          borderRadius: "4px",
+          fontSize: "0.9rem",
+          opacity: isDisabled ? 0.5 : 1,
+        }}
+      >
+        {date.getDate()}
+      </div>
+    );
+  };
+
+  const renderCalendar = () => {
+    const weeks = generateCalendarDays();
 
     return (
       <div>
@@ -89,7 +143,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
 
         <div className="calendar-grid">
           <div className="d-flex mb-2">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            {WEEKDAY_LABELS.map((day) => (
               <div key={day} className="text-center fw-bold" style={{ flex: 1, fontSize: "0.85rem" }}>
                 {day}
               </div>
@@ -98,40 +152,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
 
           {weeks.map((week, weekIdx) => (
             <div key={weekIdx} className="d-flex mb-1">
-              {week.map((date, dayIdx) => {
-                const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-                const isSelected = selectedDate ? sameDay(selectedDate, date) : false;
-                const isDisabled = isDateDisabled(date);
-                const isBlackout = blackoutDates.some((d: Date) => sameDay(d, date));
-                const isToday = sameDay(date, today);
-
-                return (
-                  <div
-                    key={dayIdx}
-                    onClick={() => !isDisabled && handleDateClick(date)}
-                    className={`text-center p-2 ${
-                      isDisabled ? "text-muted" : "cursor-pointer"
-                    }`}
-                    style={{
-                      flex: 1,
-                      cursor: isDisabled ? "not-allowed" : "pointer",
-                      backgroundColor: isSelected
-                        ? "#0d6efd"
-                        : isBlackout
-                        ? "#dc3545"
-                        : isToday
-                        ? "#e9ecef"
-                        : "transparent",
-                      color: isSelected || isBlackout ? "white" : isCurrentMonth ? "inherit" : "#adb5bd",
-                      borderRadius: "4px",
-                      fontSize: "0.9rem",
-                      opacity: isDisabled ? 0.5 : 1,
-                    }}
-                  >
-                    {date.getDate()}
-                  </div>
-                );
-              })}
+              {week.map((date, dayIdx) => renderCalendarDay(date, dayIdx))}
             </div>
           ))}
         </div>

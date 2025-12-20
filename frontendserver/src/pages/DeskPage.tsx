@@ -10,14 +10,14 @@ import {
   getStatusBadgeVariant
 } from "../components/FloorPlan/index.tsx";
 import { Container, Row, Col, Card, Button, Badge, Alert, Form } from "react-bootstrap";
-import { DateSelector } from "../components/DateSelector.tsx";
+import { DateSelector, useDeskAvailability, useOfficeClosedDates } from "../components/DateSelector/index.tsx";
 import { startOfDay, addDays } from "date-fns";
 import { Building } from "../types/booking.types.tsx";
 import api from "../services/api.ts";
 import { useUser } from "../contexts/UserContext.tsx";
 
 const DeskPage = () => {
-  const { loggedInUser, isAdmin, clearUser } = useUser();
+  const { loggedInUser } = useUser();
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [selectedBuilding, setSelectedBuilding] = useState<Building | null>(null);
   const [floorPlan, setFloorPlan] = useState<FloorPlanDto | null>(null);
@@ -30,6 +30,12 @@ const DeskPage = () => {
   const tomorrow = addDays(today, 1);
   const [selectedDate, setSelectedDate] = useState<Date | null>(tomorrow);
   const [selectedDateLabel, setSelectedDateLabel] = useState<String | null>();
+
+  // Fetch office closed dates
+  const { closedDates, loading: loadingClosedDates } = useOfficeClosedDates(selectedBuilding?.id);
+  // Fetch booked dates for selected desk
+  const { bookedDates, loading: loadingBookedDates } = useDeskAvailability(selectedDesk?.id);
+
 
   // Fetch buildings on mount
   useEffect(() => {
@@ -63,13 +69,9 @@ const DeskPage = () => {
       const userId = loggedInUser?.id;
       const url = `buildings/get-floor-plan/${buildingId}/${dateStr}/${userId}`;
 
-      console.log('Fetching floor plan with:', { buildingId, dateStr, userId, url });
-
       try {
         const response = await api.get(url);
         if (response.status === 200){
-          console.log('Response received for building ID:', buildingId);
-          console.log(JSON.stringify(response.data, null, 2));
           setFloorPlan(response.data);
         }
       } catch (error) {
@@ -169,7 +171,9 @@ const DeskPage = () => {
                 <DateSelector
                   selectedDate={selectedDate}
                   onSelectedDateChange={setSelectedDate}
-                  disabled={loading || loadingDesks}
+                  closedDates={closedDates}
+                  bookedDates={bookedDates}
+                  disabled={loading || loadingDesks || loadingClosedDates || loadingBookedDates}
                 />
 
               {selectedDesk && (
