@@ -1,5 +1,5 @@
 using DeskBookingService.Models;
-using DeskBookingService.Models.AdminDTOs;
+using DeskBookingService.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MapsterMapper;
@@ -209,7 +209,7 @@ namespace DeskBookingService.Controllers
             try
             {
                 var users = await _context.Users.ToListAsync();
-                var userDtos = _mapper.Map<List<AdminUserDto>>(users);
+                var userDtos = _mapper.Map<List<UserDto>>(users);
                 return Ok(userDtos);
             }
             catch (Exception ex)
@@ -224,7 +224,7 @@ namespace DeskBookingService.Controllers
             try
             {
                 var buildings = await _context.Buildings.ToListAsync();
-                var buildingDtos = _mapper.Map<List<AdminBuildingDto>>(buildings);
+                var buildingDtos = _mapper.Map<List<BuildingDto>>(buildings);
                 return Ok(buildingDtos);
             }
             catch (Exception ex)
@@ -241,7 +241,7 @@ namespace DeskBookingService.Controllers
                 var desks = await _context.Desks
                     .Include(d => d.Building)
                     .ToListAsync();
-                var deskDtos = _mapper.Map<List<AdminDeskDto>>(desks);
+                var deskDtos = _mapper.Map<List<DeskDto>>(desks);
                 return Ok(deskDtos);
             }
             catch (Exception ex)
@@ -254,8 +254,10 @@ namespace DeskBookingService.Controllers
         {
             try
             {
-                var reservations = await _context.Reservations.ToListAsync();
-                var reservationDtos = _mapper.Map<List<AdminReservationDto>>(reservations);
+                var reservations = await _context.Reservations
+                    .Include(r => r.TimeSpans)  // Include TimeSpans collection
+                    .ToListAsync();
+                var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
                 return Ok(reservationDtos);
             }
             catch (Exception ex)

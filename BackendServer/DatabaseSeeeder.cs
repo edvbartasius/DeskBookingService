@@ -8,84 +8,252 @@ public static class DatabaseSeeder
     {
         dbContext.Database.EnsureCreated();
 
-        dbContext.Buildings.AddRange(
-            GetPredefinedBuildings()
-        );
+        // Add buildings first to get their IDs
+        var buildings = GetPredefinedBuildings();
+        dbContext.Buildings.AddRange(buildings);
+        dbContext.SaveChanges();
 
-        dbContext.Users.AddRange(
-            GetPredefinedUsers()
-        );
-    
-        dbContext.Reservations.AddRange(
-            GetPredefinedReservations()
-        );
+        // Add operating hours for each building
+        dbContext.OperatingHours.AddRange(GetOperatingHours(buildings));
+
+        // Add users
+        dbContext.Users.AddRange(GetPredefinedUsers());
+
+        // Add reservations with time spans
+        dbContext.Reservations.AddRange(GetPredefinedReservations());
 
         dbContext.SaveChanges();
     }
+
     private static List<Building> GetPredefinedBuildings()
     {
         return new List<Building>
         {
             new Building
             {
+                Id = 1,
                 Name = "Main Office",
+                FloorPlanWidth = 15,  // 15 cells wide
+                FloorPlanHeight = 10, // 10 cells tall
                 Desks = new List<Desk>
                 {
-                    new Desk { Id = 101, Description = "Near window", BuildingId = 1 },
-                    new Desk { Id = 102, Description = "Corner desk", BuildingId = 1 },
-                    new Desk { Id = 103, Description = "Quiet area", BuildingId = 1 },
-                    new Desk { Id = 104, Description = "Near window", BuildingId = 1 },
-                    new Desk { Id = 105, Description = "Corner desk", BuildingId = 1 },
-                    new Desk { Id = 106, Description = "Quiet area", BuildingId = 1 },
-                    new Desk { Id = 107, Description = "Near window", BuildingId = 1 },
-                    new Desk { Id = 108, Description = "Corner desk", BuildingId = 1 },
-                    new Desk { Id = 109, Description = "Quiet area", BuildingId = 1 },
-                    new Desk { Id = 110, Description = "Near window", BuildingId = 1 },
-                    new Desk { Id = 111, Description = "Corner desk", BuildingId = 1 },
-                    new Desk { Id = 112, Description = "Quiet area", BuildingId = 1 },
-                    new Desk { Id = 113, Description = "Near window", BuildingId = 1 },
-                    new Desk { Id = 114, Description = "Corner desk", BuildingId = 1 },
-                    new Desk { Id = 115, Description = "Quiet area", BuildingId = 1 },
-                    new Desk { Id = 116, Description = "Near window", BuildingId = 1 },
-                    new Desk { Id = 117, Description = "Corner desk", BuildingId = 1 },
-                    new Desk { Id = 118, Description = "Quiet area", BuildingId = 1 },
+                    // Row 1: Regular desks along the top (window seats)
+                    new Desk { Id = 101, Description = "Window desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 102, Description = "Window desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 103, Description = "Window desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 104, Description = "Window desk 4", PositionX = 4, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 105, Description = "Window desk 5", PositionX = 5, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+
+                    // Row 2: Regular desks
+                    new Desk { Id = 106, PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 107, PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 108, PositionX = 3, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 109, PositionX = 4, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 110, PositionX = 5, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+
+                    // Row 3: Regular desks
+                    new Desk { Id = 111, Description = "Quiet area", PositionX = 1, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 112, Description = "Quiet area", PositionX = 2, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 113, Description = "Quiet area", PositionX = 3, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 114, Description = "Quiet area", PositionX = 4, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 115, Description = "Quiet area", PositionX = 5, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+
+                    // Bottom row desks
+                    new Desk { Id = 116, PositionX = 1, PositionY = 8, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 117, PositionX = 2, PositionY = 8, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 118, PositionX = 3, PositionY = 8, Type = DeskType.RegularDesk, BuildingId = 1 },
+
+                    // Conference rooms (larger - takes up more cells)
+                    new Desk { Id = 150, Description = "Conference Room A", PositionX = 8, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    new Desk { Id = 151, Description = "Conference Room B", PositionX = 11, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    new Desk { Id = 152, Description = "Meeting Room", PositionX = 8, PositionY = 5, Type = DeskType.ConferenceRoom, BuildingId = 1 },
                 }
             },
             new Building
             {
+                Id = 2,
                 Name = "Annex Building",
+                FloorPlanWidth = 10,  // Smaller building
+                FloorPlanHeight = 8,
                 Desks = new List<Desk>
                 {
-                    new Desk { Id = 119, Description = "Quiet area", BuildingId = 2 },
-                    new Desk { Id = 120, Description = "Next to kitchen", BuildingId = 2 }
+                    // Small quiet office
+                    new Desk { Id = 201, Description = "Focus desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 202, Description = "Focus desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 203, Description = "Focus desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 204, PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 205, PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+
+                    // Small conference room
+                    new Desk { Id = 250, Description = "Small Meeting Room", PositionX = 6, PositionY = 2, Type = DeskType.ConferenceRoom, BuildingId = 2 },
                 }
             }
         };
     }
+
+    private static List<OperatingHours> GetOperatingHours(List<Building> buildings)
+    {
+        var hours = new List<OperatingHours>();
+
+        foreach (var building in buildings)
+        {
+            if (building.Id == 1) // Main Office
+            {
+                // Monday-Friday: 7 AM - 7 PM
+                for (int day = 1; day <= 5; day++)  // 1=Monday, 5=Friday
+                {
+                    hours.Add(new OperatingHours
+                    {
+                        BuildingId = building.Id,
+                        DayOfWeek = (DayOfWeek)day,
+                        OpeningTime = new TimeOnly(7, 0),
+                        ClosingTime = new TimeOnly(19, 0),
+                        IsClosed = false
+                    });
+                }
+
+                // Saturday: 8 AM - 2 PM (half day)
+                hours.Add(new OperatingHours
+                {
+                    BuildingId = building.Id,
+                    DayOfWeek = DayOfWeek.Saturday,
+                    OpeningTime = new TimeOnly(8, 0),
+                    ClosingTime = new TimeOnly(14, 0),
+                    IsClosed = false
+                });
+
+                // Sunday: Closed
+                hours.Add(new OperatingHours
+                {
+                    BuildingId = building.Id,
+                    DayOfWeek = DayOfWeek.Sunday,
+                    OpeningTime = new TimeOnly(0, 0),
+                    ClosingTime = new TimeOnly(0, 0),
+                    IsClosed = true
+                });
+            }
+            else if (building.Id == 2) // Annex Building
+            {
+                // Monday-Friday: 8 AM - 6 PM (shorter hours)
+                for (int day = 1; day <= 5; day++)
+                {
+                    hours.Add(new OperatingHours
+                    {
+                        BuildingId = building.Id,
+                        DayOfWeek = (DayOfWeek)day,
+                        OpeningTime = new TimeOnly(8, 0),
+                        ClosingTime = new TimeOnly(18, 0),
+                        IsClosed = false
+                    });
+                }
+
+                // Weekend: Closed
+                hours.Add(new OperatingHours
+                {
+                    BuildingId = building.Id,
+                    DayOfWeek = DayOfWeek.Saturday,
+                    OpeningTime = new TimeOnly(0, 0),
+                    ClosingTime = new TimeOnly(0, 0),
+                    IsClosed = true
+                });
+
+                hours.Add(new OperatingHours
+                {
+                    BuildingId = building.Id,
+                    DayOfWeek = DayOfWeek.Sunday,
+                    OpeningTime = new TimeOnly(0, 0),
+                    ClosingTime = new TimeOnly(0, 0),
+                    IsClosed = true
+                });
+            }
+        }
+
+        return hours;
+    }
+
     private static List<Reservation> GetPredefinedReservations()
     {
+        var tomorrow = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(1));
+        var dayAfterTomorrow = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(2));
+
         return new List<Reservation>
         {
+            // Example 1: Multi-timespan reservation (morning and afternoon slots)
             new Reservation
             {
                 Id = 1,
-                DeskId = 102,
-                UserId = "U1",
-                ReservationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(1)), // Tomorrow
-                StartDate = new TimeOnly(10,0),
-                EndDate = new TimeOnly(15,0)
+                DeskId = 101,
+                UserId = "U2",
+                ReservationDate = tomorrow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                TimeSpans = new List<ReservationTimeSpan>
+                {
+                    new ReservationTimeSpan
+                    {
+                        Id = 1,
+                        ReservationId = 1,
+                        StartTime = new TimeOnly(8, 0),
+                        EndTime = new TimeOnly(12, 0),
+                        Status = ReservationStatus.Active
+                    },
+                    new ReservationTimeSpan
+                    {
+                        Id = 2,
+                        ReservationId = 1,
+                        StartTime = new TimeOnly(14, 0),
+                        EndTime = new TimeOnly(17, 0),
+                        Status = ReservationStatus.Active
+                    }
+                }
             },
+
+            // Example 2: Full-day conference room booking
             new Reservation
             {
                 Id = 2,
-                DeskId = 103,
-                UserId = "U2",
-                ReservationDate = DateOnly.FromDateTime(DateTime.UtcNow.Date.AddDays(2)), // Day after tomorrow
-                StartDate = new TimeOnly(9,0),
-                EndDate = new TimeOnly(17,0)
+                DeskId = 150,
+                UserId = "U3",
+                ReservationDate = tomorrow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                TimeSpans = new List<ReservationTimeSpan>
+                {
+                    new ReservationTimeSpan
+                    {
+                        Id = 3,
+                        ReservationId = 2,
+                        StartTime = new TimeOnly(9, 0),
+                        EndTime = new TimeOnly(16, 0),
+                        Status = ReservationStatus.Active
+                    }
+                }
+            },
+
+            // Example 3: Another desk with single timespan
+            new Reservation
+            {
+                Id = 3,
+                DeskId = 106,
+                UserId = "U4",
+                ReservationDate = dayAfterTomorrow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                TimeSpans = new List<ReservationTimeSpan>
+                {
+                    new ReservationTimeSpan
+                    {
+                        Id = 4,
+                        ReservationId = 3,
+                        StartTime = new TimeOnly(10, 0),
+                        EndTime = new TimeOnly(15, 30),
+                        Status = ReservationStatus.Active
+                    }
+                }
             }
         };
     }
+
     private static List<User> GetPredefinedUsers()
     {
         return new List<User>

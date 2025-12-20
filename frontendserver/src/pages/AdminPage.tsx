@@ -19,7 +19,7 @@ const AdminPage = () => {
             title: "Database Viewer",
             description: "View and manage database records",
             allowExpand: true,
-            content: <DatabaseViewer />
+            content: undefined // <DatabaseViewer /> removed database viewer temporarily
         }
     ];
 

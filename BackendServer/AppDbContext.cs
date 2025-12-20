@@ -12,6 +12,8 @@ public class AppDbContext : DbContext
     public DbSet<Building> Buildings { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<ReservationTimeSpan> ReservationTimeSpans { get; set;}
+    public DbSet<OperatingHours> OperatingHours { get; set;}
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -27,6 +29,40 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
             .Property(u => u.Id)
             .ValueGeneratedOnAdd();
+
+        // Reservation -> User
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.User)
+            .WithMany()  
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Restrict);  // Don't cascade delete
+
+        // Reservation -> Desk
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Desk)
+            .WithMany(d => d.Reservations)
+            .HasForeignKey(r => r.DeskId)
+            .OnDelete(DeleteBehavior.Cascade);  // Delete reservations if desk deleted
+
+        // ReservationTimeSpan -> Reservation
+        modelBuilder.Entity<ReservationTimeSpan>()
+            .HasOne(ts => ts.Reservation)
+            .WithMany(r => r.TimeSpans)
+            .HasForeignKey(ts => ts.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);  // Delete timespans if reservation deleted
+
+        // OperatingHourse -> Building
+        modelBuilder.Entity<OperatingHours>()
+            .HasOne(oh => oh.Building)
+            .WithMany(b => b.OperatingHours)
+            .HasForeignKey(oh => oh.BuildingId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // One record per building per day
+        modelBuilder.Entity<OperatingHours>()
+            .HasIndex(oh => new { oh.BuildingId, oh.DayOfWeek })
+            .IsUnique();
+        
     }
 
     public override int SaveChanges()
