@@ -12,6 +12,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Mapster
 MapsterConfiguration.Configure();
 
+// Configure options
+builder.Services.Configure<BackgroundJobOptions>(
+    builder.Configuration.GetSection(BackgroundJobOptions.SectionName));
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -24,6 +28,23 @@ builder.Services.AddDbContext<AppDbContext>();
 // Register application services
 builder.Services.AddScoped<DeskAvailabilityService>();
 builder.Services.AddScoped<ReservationValidationService>();
+
+// Register background services (conditionally based on configuration)
+var backgroundJobOptions = builder.Configuration
+    .GetSection(BackgroundJobOptions.SectionName)
+    .Get<BackgroundJobOptions>() ?? new BackgroundJobOptions();
+
+if (backgroundJobOptions.EnableReservationCleanup)
+{
+    if (backgroundJobOptions.UseDailyCleanup)
+    {
+        builder.Services.AddHostedService<DailyReservationCleanupService>();
+    }
+    else
+    {
+        builder.Services.AddHostedService<ReservationCleanupService>();
+    }
+}
 
 // Register FluentValidation validators
 builder.Services.AddScoped<IValidator<DeskBookingService.Models.User>, UserValidator>();

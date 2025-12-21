@@ -227,8 +227,12 @@ namespace DeskBookingService.Controllers
                 return BadRequest("User not found");
             }
 
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
             var reservations = await _context.Reservations
-                .Where(r => r.UserId == userId && r.Status == ReservationStatus.Active)
+                .Where(r => r.UserId == userId &&
+                           r.Status == ReservationStatus.Active &&
+                           r.ReservationDate >= today) // Only upcoming reservations
                 .Include(r => r.Desk)
                     .ThenInclude(d => d!.Building)
                 .OrderByDescending(r => r.CreatedAt)
@@ -248,9 +252,13 @@ namespace DeskBookingService.Controllers
                     dates = g.OrderBy(r => r.ReservationDate)
                              .Select(r => r.ReservationDate)
                              .ToList(),
-                    reservations = _mapper.Map<List<ReservationDto>>(g.OrderBy(r => r.ReservationDate).ToList())
+                    reservations = _mapper.Map<List<ReservationDto>>(g.OrderBy(r => r.ReservationDate).ToList()),
+                    // Business logic: Check if any date is today
+                    hasToday = g.Any(r => r.ReservationDate == today),
+                    // Business logic: Days until first reservation
+                    daysUntilFirst = g.Min(r => r.ReservationDate).DayNumber - today.DayNumber
                 })
-                .OrderByDescending(g => g.createdAt)
+                .OrderBy(g => g.daysUntilFirst) // Sort by nearest first
                 .ToList();
 
             return Ok(groupedReservations);
@@ -265,18 +273,33 @@ namespace DeskBookingService.Controllers
                 return BadRequest("User not found");
             }
 
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
             var reservations = await _context.Reservations
                 .Where(r => r.UserId == userId &&
-                    (r.Status == ReservationStatus.Cancelled || r.ReservationDate < DateOnly.FromDateTime(DateTime.UtcNow)))
+                    (r.Status == ReservationStatus.Cancelled || r.ReservationDate < today))
                 .Include(r => r.Desk)
                     .ThenInclude(d => d!.Building)
                 .OrderByDescending(r => r.ReservationDate)
                 .ToListAsync();
 
-            var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
+            // Map to DTOs and add business logic for effective status
+            var reservationDtos = reservations.Select(r => {
+                var dto = _mapper.Map<ReservationDto>(r);
+
+                // Business logic: Determine effective status
+                // If cancelled, keep as cancelled
+                // If date has passed and not cancelled, mark as completed
+                if (r.Status != ReservationStatus.Cancelled && r.ReservationDate < today)
+                {
+                    dto.Status = ReservationStatus.Completed;
+                }
+
+                return dto;
+            }).ToList();
+
             return Ok(reservationDtos);
         }
-
         [HttpPatch("my-reservations/cancel-single-day/{deskId}/{date}/{userId}")]
         public async Task<IActionResult> CancelReservation(int deskId, DateOnly date, string userId)
         {
@@ -312,8 +335,52 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "Failed to cancel reservation: " + ex.Message);
             }
         }
-        [HttpPatch("my-reservations/cancel-booking-group/{deskId}/{date}/{userId}")]
-        public async Task<IActionResult> CancelBookingGroup(int deskId, DateOnly date, string userId)
+        // Cancel all reservations in a booking group (from profile page)
+        [HttpPatch("my-reservations/cancel-booking-group/{ReservationGroupId}/{userId}")]
+        public async Task<IActionResult> CancelBookingGroupByGroupId(Guid ReservationGroupId, string userId)
+        {
+            try
+            {
+                // Verify user (for production authenticate without passing userId in request)
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                // Find all reservations in this booking group for this user
+                var reservations = await _context.Reservations
+                    .Where(r => r.ReservationGroupId == ReservationGroupId &&
+                    r.UserId == userId &&
+                    r.Status == ReservationStatus.Active
+                    ).ToListAsync();
+
+                if (reservations.Count == 0)
+                {
+                    return NotFound($"No active reservations found for booking group: {ReservationGroupId}");
+                }
+
+                // Cancel all reservations in the booking group
+                foreach (var reservation in reservations)
+                {
+                    reservation.CanceledAt = DateTime.UtcNow;
+                    reservation.Status = ReservationStatus.Cancelled;
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok(new {
+                    message = $"Successfully cancelled {reservations.Count} reservation(s)",
+                    cancelledCount = reservations.Count
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Failed to cancel reservation(s): " + ex.Message);
+            }
+        }
+        // Cancel reservation group when reservationGroupId is not accessible
+        [HttpPatch("my-reservations/cancel-booking-group-by-desk/{deskId}/{date}/{userId}")]
+        public async Task<IActionResult> CancelBookingGroupByDesk(int deskId, DateOnly date, string userId)
         {
             // Find all reservations in the same booking group and cancel them all
             try

@@ -167,9 +167,183 @@ public static class DatabaseSeeder
         var threeDaysFromNow = today.AddDays(3);
         var fourDaysFromNow = today.AddDays(4);
 
+        // Past dates for finished reservations
+        var yesterday = today.AddDays(-1);
+        var twoDaysAgo = today.AddDays(-2);
+        var threeDaysAgo = today.AddDays(-3);
+        var fiveDaysAgo = today.AddDays(-5);
+        var sevenDaysAgo = today.AddDays(-7);
+        var tenDaysAgo = today.AddDays(-10);
+
+        // Reservation group IDs
+        var adminFinishedGroupId = Guid.NewGuid(); // For admin's finished group
+        var adminCancelledGroupId = Guid.NewGuid(); // For admin's cancelled group
+        var adminFutureGroupId1 = Guid.NewGuid(); // For admin's upcoming multi-day booking
+        var adminFutureGroupId2 = Guid.NewGuid(); // For admin's future conference room
+        var user2FutureGroupId = Guid.NewGuid(); // For User 2's future multi-day booking
+        var user2PastGroupId = Guid.NewGuid(); // For User 2's past booking
+        var user3FutureGroupId = Guid.NewGuid(); // For User 3's future booking
+        var user3PastGroupId = Guid.NewGuid(); // For User 3's past cancelled booking
+        var user4FutureGroupId = Guid.NewGuid(); // For User 4's future consecutive booking
+        var user4PastGroupId = Guid.NewGuid(); // For User 4's past booking
+        var user5FutureGroupId = Guid.NewGuid(); // For User 5's future booking
+        var user5PastGroupId = Guid.NewGuid(); // For User 5's past booking
+
         return new List<Reservation>
         {
-            // Example 1: User 2 books desk 101 for tomorrow
+            // ===== FINISHED RESERVATIONS FOR ADMIN (U1) =====
+
+            // Finished Group 1: Admin had a 3-day booking last week (completed)
+            new Reservation
+            {
+                Id = 100,
+                DeskId = 102, // Window desk 2
+                UserId = "U1",
+                ReservationDate = tenDaysAgo,
+                Status = ReservationStatus.Active, // Will show as Completed in history (backend logic)
+                CreatedAt = DateTime.UtcNow.AddDays(-12),
+                ReservationGroupId = adminFinishedGroupId
+            },
+            new Reservation
+            {
+                Id = 101,
+                DeskId = 102,
+                UserId = "U1",
+                ReservationDate = tenDaysAgo.AddDays(1),
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow.AddDays(-12),
+                ReservationGroupId = adminFinishedGroupId
+            },
+            new Reservation
+            {
+                Id = 102,
+                DeskId = 102,
+                UserId = "U1",
+                ReservationDate = tenDaysAgo.AddDays(2),
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow.AddDays(-12),
+                ReservationGroupId = adminFinishedGroupId
+            },
+
+            // Finished Group 2: Admin cancelled a booking (cancelled status)
+            new Reservation
+            {
+                Id = 103,
+                DeskId = 105, // Standing desk 1
+                UserId = "U1",
+                ReservationDate = fiveDaysAgo,
+                Status = ReservationStatus.Cancelled,
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
+                CanceledAt = DateTime.UtcNow.AddDays(-6),
+                ReservationGroupId = adminCancelledGroupId
+            },
+            new Reservation
+            {
+                Id = 104,
+                DeskId = 105,
+                UserId = "U1",
+                ReservationDate = fiveDaysAgo.AddDays(1),
+                Status = ReservationStatus.Cancelled,
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
+                CanceledAt = DateTime.UtcNow.AddDays(-6),
+                ReservationGroupId = adminCancelledGroupId
+            },
+
+            // Individual finished reservation: Admin used conference room
+            new Reservation
+            {
+                Id = 105,
+                DeskId = 150, // Large conference room
+                UserId = "U1",
+                ReservationDate = threeDaysAgo,
+                Status = ReservationStatus.Active, // Will show as Completed
+                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                ReservationGroupId = Guid.NewGuid()
+            },
+
+            // Another individual: Admin's desk from yesterday
+            new Reservation
+            {
+                Id = 106,
+                DeskId = 103, // Window desk 3
+                UserId = "U1",
+                ReservationDate = yesterday,
+                Status = ReservationStatus.Active, // Will show as Completed
+                CreatedAt = DateTime.UtcNow.AddDays(-3),
+                ReservationGroupId = Guid.NewGuid()
+            },
+
+            // ===== FUTURE RESERVATIONS FOR ADMIN (U1) =====
+
+            // Future Group 1: Admin's upcoming 4-day booking (non-consecutive dates)
+            new Reservation
+            {
+                Id = 107,
+                DeskId = 104, // Window desk 4
+                UserId = "U1",
+                ReservationDate = tomorrow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = adminFutureGroupId1
+            },
+            new Reservation
+            {
+                Id = 108,
+                DeskId = 104,
+                UserId = "U1",
+                ReservationDate = dayAfterTomorrow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = adminFutureGroupId1
+            },
+            new Reservation
+            {
+                Id = 109,
+                DeskId = 104,
+                UserId = "U1",
+                ReservationDate = threeDaysFromNow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = adminFutureGroupId1
+            },
+            new Reservation
+            {
+                Id = 110,
+                DeskId = 104,
+                UserId = "U1",
+                ReservationDate = fourDaysFromNow,
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = adminFutureGroupId1
+            },
+
+            // Future Group 2: Admin's conference room booking next week
+            new Reservation
+            {
+                Id = 111,
+                DeskId = 150, // Large conference room
+                UserId = "U1",
+                ReservationDate = today.AddDays(7),
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = adminFutureGroupId2
+            },
+
+            // Individual future: Admin's standing desk booking
+            new Reservation
+            {
+                Id = 112,
+                DeskId = 105, // Standing desk 1
+                UserId = "U1",
+                ReservationDate = today.AddDays(10),
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = Guid.NewGuid()
+            },
+
+            // ===== FUTURE RESERVATIONS FOR OTHER USERS =====
+
+            // User 2: Multi-day booking (same group)
             new Reservation
             {
                 Id = 1,
@@ -177,10 +351,9 @@ public static class DatabaseSeeder
                 UserId = "U2",
                 ReservationDate = tomorrow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = user2FutureGroupId
             },
-
-            // Example 2: User 2 books desk 101 for day after tomorrow (multi-day booking)
             new Reservation
             {
                 Id = 2,
@@ -188,10 +361,11 @@ public static class DatabaseSeeder
                 UserId = "U2",
                 ReservationDate = dayAfterTomorrow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = user2FutureGroupId // Same group
             },
 
-            // Example 3: User 3 books conference room for tomorrow
+            // User 3: Conference room booking
             new Reservation
             {
                 Id = 3,
@@ -199,10 +373,11 @@ public static class DatabaseSeeder
                 UserId = "U3",
                 ReservationDate = tomorrow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = user3FutureGroupId
             },
 
-            // Example 4: User 4 books desk 106 for three days from now
+            // User 4: Consecutive booking (same group)
             new Reservation
             {
                 Id = 4,
@@ -210,10 +385,9 @@ public static class DatabaseSeeder
                 UserId = "U4",
                 ReservationDate = threeDaysFromNow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = user4FutureGroupId
             },
-
-            // Example 5: User 4 books desk 106 for four days from now (consecutive booking)
             new Reservation
             {
                 Id = 5,
@@ -221,10 +395,11 @@ public static class DatabaseSeeder
                 UserId = "U4",
                 ReservationDate = fourDaysFromNow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = user4FutureGroupId // Same group
             },
 
-            // Example 6: User 5 books desk 107 for tomorrow
+            // User 5: Single day booking
             new Reservation
             {
                 Id = 6,
@@ -232,7 +407,89 @@ public static class DatabaseSeeder
                 UserId = "U5",
                 ReservationDate = tomorrow,
                 Status = ReservationStatus.Active,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                ReservationGroupId = user5FutureGroupId
+            },
+
+            // ===== PAST RESERVATIONS FOR OTHER USERS =====
+
+            // User 2: Past completed booking
+            new Reservation
+            {
+                Id = 200,
+                DeskId = 101,
+                UserId = "U2",
+                ReservationDate = fiveDaysAgo,
+                Status = ReservationStatus.Active, // Will show as Completed
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
+                ReservationGroupId = user2PastGroupId
+            },
+            new Reservation
+            {
+                Id = 201,
+                DeskId = 101,
+                UserId = "U2",
+                ReservationDate = fiveDaysAgo.AddDays(1),
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow.AddDays(-7),
+                ReservationGroupId = user2PastGroupId
+            },
+
+            // User 3: Past cancelled booking
+            new Reservation
+            {
+                Id = 202,
+                DeskId = 150,
+                UserId = "U3",
+                ReservationDate = threeDaysAgo,
+                Status = ReservationStatus.Cancelled,
+                CreatedAt = DateTime.UtcNow.AddDays(-5),
+                CanceledAt = DateTime.UtcNow.AddDays(-4),
+                ReservationGroupId = user3PastGroupId
+            },
+
+            // User 4: Past completed booking
+            new Reservation
+            {
+                Id = 203,
+                DeskId = 106,
+                UserId = "U4",
+                ReservationDate = sevenDaysAgo,
+                Status = ReservationStatus.Active, // Will show as Completed
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                ReservationGroupId = user4PastGroupId
+            },
+            new Reservation
+            {
+                Id = 204,
+                DeskId = 106,
+                UserId = "U4",
+                ReservationDate = sevenDaysAgo.AddDays(1),
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                ReservationGroupId = user4PastGroupId
+            },
+            new Reservation
+            {
+                Id = 205,
+                DeskId = 106,
+                UserId = "U4",
+                ReservationDate = sevenDaysAgo.AddDays(2),
+                Status = ReservationStatus.Active,
+                CreatedAt = DateTime.UtcNow.AddDays(-10),
+                ReservationGroupId = user4PastGroupId
+            },
+
+            // User 5: Past completed booking
+            new Reservation
+            {
+                Id = 206,
+                DeskId = 107,
+                UserId = "U5",
+                ReservationDate = yesterday,
+                Status = ReservationStatus.Active, // Will show as Completed
+                CreatedAt = DateTime.UtcNow.AddDays(-2),
+                ReservationGroupId = user5PastGroupId
             }
         };
     }
