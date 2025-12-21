@@ -29,6 +29,10 @@ namespace DeskBookingService.Controllers
             _validator = validator;
         }
 
+        /// <summary>
+        /// Retrieves all reservations from the database with user and desk information
+        /// </summary>
+        /// <returns>List of reservation DTOs</returns>
         [HttpGet]
         public async Task<IActionResult> GetReservations()
         {
@@ -41,6 +45,11 @@ namespace DeskBookingService.Controllers
             return Ok(reservationDtos);
         }
 
+        /// <summary>
+        /// Deletes a reservation from the database by ID
+        /// </summary>
+        /// <param name="id">Reservation ID to delete</param>
+        /// <returns>Success or error message</returns>
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -61,6 +70,12 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates an existing reservation's information
+        /// </summary>
+        /// <param name="id">Reservation ID to update</param>
+        /// <param name="reservationDto">Updated reservation data</param>
+        /// <returns>Success or error message</returns>
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateReservation(int id, [FromBody] UpdateReservationDto reservationDto)
         {
@@ -93,6 +108,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Creates one or more reservations for a desk on specified dates
+        /// </summary>
+        /// <param name="dto">Reservation creation data including user ID, desk ID, and dates</param>
+        /// <returns>Success message with count of created reservations or error message</returns>
         [HttpPost("create")]
         public async Task<IActionResult> CreateReservation(CreateReservationDTO dto)
         {
@@ -141,7 +161,8 @@ namespace DeskBookingService.Controllers
 
                 if (!validationResult.IsValid)
                 {
-                    return BadRequest(new {
+                    return BadRequest(new
+                    {
                         error = validationResult.ErrorMessage,
                         failedDate = date.ToString("yyyy-MM-dd")
                     });
@@ -153,14 +174,14 @@ namespace DeskBookingService.Controllers
 
             // Create all reservations at once
             var reservations = uniqueDates.Select(date => new Reservation
-                {
-                    UserId = dto.UserId.ToString(),
-                    DeskId = dto.DeskId,
-                    ReservationDate = date,
-                    Status = ReservationStatus.Active,
-                    ReservationGroupId = ReservationGroupId,
-                    CreatedAt = DateTime.UtcNow
-                }).ToList();
+            {
+                UserId = dto.UserId.ToString(),
+                DeskId = dto.DeskId,
+                ReservationDate = date,
+                Status = ReservationStatus.Active,
+                ReservationGroupId = ReservationGroupId,
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
 
             try
             {
@@ -168,7 +189,8 @@ namespace DeskBookingService.Controllers
                 _context.Reservations.AddRange(reservations);
                 await _context.SaveChangesAsync();
 
-                return Ok(new {
+                return Ok(new
+                {
                     success = true,
                     message = $"Successfully created {reservations.Count} reservation(s)",
                 });
@@ -179,6 +201,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves all active reservation dates for a specific desk
+        /// </summary>
+        /// <param name="deskId">Desk ID</param>
+        /// <returns>List of dates when the desk is reserved</returns>
         [HttpGet("desk/{deskId}")]
         public async Task<IActionResult> GetDeskReservations(int deskId)
         {
@@ -198,6 +225,11 @@ namespace DeskBookingService.Controllers
             return Ok(reservationDates);
         }
 
+        /// <summary>
+        /// Retrieves all active reservations for a specific user
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <returns>List of user's active reservation DTOs with desk and building information</returns>
         [HttpGet("my-reservations/{userId}")]
         public async Task<IActionResult> GetUserReservations(string userId)
         {
@@ -218,6 +250,11 @@ namespace DeskBookingService.Controllers
             return Ok(reservationDtos);
         }
 
+        /// <summary>
+        /// Retrieves user's upcoming reservations grouped by booking group ID
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <returns>List of grouped reservations with metadata (dates, desk info, days until first reservation)</returns>
         [HttpGet("my-reservations/grouped/{userId}")]
         public async Task<IActionResult> GetUserReservationsGrouped(string userId)
         {
@@ -264,6 +301,11 @@ namespace DeskBookingService.Controllers
             return Ok(groupedReservations);
         }
 
+        /// <summary>
+        /// Retrieves user's reservation history (cancelled and past reservations)
+        /// </summary>
+        /// <param name="userId">User ID</param>
+        /// <returns>List of past and cancelled reservation DTOs</returns>
         [HttpGet("my-reservations/history/{userId}")]
         public async Task<IActionResult> GetUserReservationHistory(string userId)
         {
@@ -284,7 +326,8 @@ namespace DeskBookingService.Controllers
                 .ToListAsync();
 
             // Map to DTOs and add business logic for effective status
-            var reservationDtos = reservations.Select(r => {
+            var reservationDtos = reservations.Select(r =>
+            {
                 var dto = _mapper.Map<ReservationDto>(r);
 
                 // Business logic: Determine effective status
@@ -300,6 +343,13 @@ namespace DeskBookingService.Controllers
 
             return Ok(reservationDtos);
         }
+        /// <summary>
+        /// Cancels a single reservation for a specific desk and date
+        /// </summary>
+        /// <param name="deskId">Desk ID</param>
+        /// <param name="date">Reservation date</param>
+        /// <param name="userId">User ID (for verification)</param>
+        /// <returns>Success or error message</returns>
         [HttpPatch("my-reservations/cancel-single-day/{deskId}/{date}/{userId}")]
         public async Task<IActionResult> CancelReservation(int deskId, DateOnly date, string userId)
         {
@@ -313,8 +363,8 @@ namespace DeskBookingService.Controllers
                 }
                 // Find reservation entry
                 var reservation = await _context.Reservations
-                    .Where(r => r.DeskId == deskId && 
-                    r.UserId == userId && 
+                    .Where(r => r.DeskId == deskId &&
+                    r.UserId == userId &&
                     r.ReservationDate == date
                     ).FirstOrDefaultAsync();
 
@@ -335,7 +385,12 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "Failed to cancel reservation: " + ex.Message);
             }
         }
-        // Cancel all reservations in a booking group (from profile page)
+        /// <summary>
+        /// Cancels all reservations in a booking group by group ID
+        /// </summary>
+        /// <param name="ReservationGroupId">Reservation group ID</param>
+        /// <param name="userId">User ID (for verification)</param>
+        /// <returns>Success message with count of cancelled reservations or error message</returns>
         [HttpPatch("my-reservations/cancel-booking-group/{ReservationGroupId}/{userId}")]
         public async Task<IActionResult> CancelBookingGroupByGroupId(Guid ReservationGroupId, string userId)
         {
@@ -368,7 +423,8 @@ namespace DeskBookingService.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                return Ok(new {
+                return Ok(new
+                {
                     message = $"Successfully cancelled {reservations.Count} reservation(s)",
                     cancelledCount = reservations.Count
                 });
@@ -378,11 +434,16 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "Failed to cancel reservation(s): " + ex.Message);
             }
         }
-        // Cancel reservation group when reservationGroupId is not accessible
+        /// <summary>
+        /// Cancels all reservations in a booking group by finding the group through desk ID and date
+        /// </summary>
+        /// <param name="deskId">Desk ID</param>
+        /// <param name="date">Any date in the booking group</param>
+        /// <param name="userId">User ID (for verification)</param>
+        /// <returns>Success message with count of cancelled reservations or error message</returns>
         [HttpPatch("my-reservations/cancel-booking-group-by-desk/{deskId}/{date}/{userId}")]
         public async Task<IActionResult> CancelBookingGroupByDesk(int deskId, DateOnly date, string userId)
         {
-            // Find all reservations in the same booking group and cancel them all
             try
             {
                 // Verify user (for production authenticate without passing userId in request)
@@ -396,7 +457,7 @@ namespace DeskBookingService.Controllers
                 var reservation = await _context.Reservations
                     .Where(r => r.DeskId == deskId && r.ReservationDate == date && r.UserId == userId)
                     .FirstOrDefaultAsync();
-                    
+
                 if (reservation == null)
                 {
                     return NotFound($"No reservation found for desk: {deskId} on {date}");
@@ -425,7 +486,8 @@ namespace DeskBookingService.Controllers
                 }
 
                 await _context.SaveChangesAsync();
-                return Ok(new {
+                return Ok(new
+                {
                     message = $"Successfully cancelled {reservations.Count} reservation(s)",
                     cancelledCount = reservations.Count
                 });

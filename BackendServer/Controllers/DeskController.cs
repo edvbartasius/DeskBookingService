@@ -27,6 +27,10 @@ namespace DeskBookingService.Controllers
             _validator = validator;
         }
 
+        /// <summary>
+        /// Retrieves all desks from the database
+        /// </summary>
+        /// <returns>List of desk DTOs</returns>
         [HttpGet("get-desks")]
         public async Task<IActionResult> GetDesks()
         {
@@ -35,6 +39,11 @@ namespace DeskBookingService.Controllers
             return Ok(deskDtos);
         }
 
+        /// <summary>
+        /// Adds a new desk to the database
+        /// </summary>
+        /// <param name="deskDto">Desk data transfer object</param>
+        /// <returns>Created desk object or error message</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddDesk([FromBody] DeskDto deskDto)
         {
@@ -61,6 +70,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a desk from the database by ID
+        /// </summary>
+        /// <param name="id">Desk ID to delete</param>
+        /// <returns>Success or error message</returns>
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteDesk(int id)
         {
@@ -81,6 +95,13 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Updates an existing desk's information
+        /// </summary>
+        /// <param name="id">Desk ID to update (from route)</param>
+        /// <param name="deskDto">Updated desk data</param>
+        /// <returns>Success or error message</returns>
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateDesk(int id, [FromBody] DeskDto deskDto)
         {

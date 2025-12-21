@@ -2,8 +2,12 @@ using FluentValidation;
 using DeskBookingService.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace DeskBookingService.Services;
+namespace DeskBookingService.Services.Validators;
 
+/// <summary>
+/// FluentValidation validator for User entity
+/// Validates name, surname, email format, and password strength
+/// </summary>
 public class UserValidator : AbstractValidator<User>
 {
     private readonly AppDbContext _context;
@@ -34,5 +38,4 @@ public class UserValidator : AbstractValidator<User>
             .Must(password => password.Any(char.IsDigit))
             .WithMessage("Password must contain at least one digit");
     }
-
 }

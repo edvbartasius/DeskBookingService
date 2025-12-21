@@ -1,130 +1,148 @@
-// using DeskBookingService;
-// using DeskBookingService.Models;
-// using Microsoft.EntityFrameworkCore;
+using DeskBookingService;
+using DeskBookingService.Models;
+using Microsoft.EntityFrameworkCore;
 
-// namespace BackendServer.Tests.Helpers;
+namespace BackendServer.Tests.Helpers;
 
-// public static class TestDbContextFactory
-// {
-//     private static readonly object _lock = new();
-//     private static int _globalIdCounter = 1000; // Start high to avoid conflicts with seed data
+public static class TestDbContextFactory
+{
+    /// <summary>
+    /// Creates an in-memory database context for testing
+    /// </summary>
+    public static AppDbContext CreateInMemoryContext(string databaseName = "TestDb")
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseInMemoryDatabase(databaseName: databaseName)
+            .EnableSensitiveDataLogging()
+            .Options;
 
-//     /// <summary>
-//     /// Creates an in-memory database context for testing
-//     /// </summary>
-//     public static AppDbContext CreateInMemoryContext(string databaseName = "TestDb")
-//     {
-//         var options = new DbContextOptionsBuilder<AppDbContext>()
-//             .UseInMemoryDatabase(databaseName: databaseName)
-//             .Options;
+        var context = new AppDbContext(options);
 
-//         var context = new AppDbContext(options);
-//         return context;
-//     }
+        // Ensure the database is clean before use
+        context.Database.EnsureDeleted();
+        context.Database.EnsureCreated();
 
-//     /// <summary>
-//     /// Seeds the database with test data for desk booking scenarios
-//     /// </summary>
-//     public static void SeedTestData(AppDbContext context)
-//     {
-//         // Clear existing data and reset
-//         context.Database.EnsureDeleted();
-//         context.Database.EnsureCreated();
+        return context;
+    }
 
-//         // Remove any existing data first (for in-memory safety)
-//         context.Buildings.RemoveRange(context.Buildings);
-//         context.OperatingHours.RemoveRange(context.OperatingHours);
-//         context.Desks.RemoveRange(context.Desks);
-//         context.Users.RemoveRange(context.Users);
-//         context.SaveChanges();
+    /// <summary>
+    /// Seeds the database with basic test data
+    /// </summary>
+    public static void SeedTestData(AppDbContext context)
+    {
+        // Create test building
+        var building = new Building
+        {
+            Id = 1,
+            Name = "Test Building",
+            FloorPlanWidth = 15,
+            FloorPlanHeight = 10
+        };
+        context.Buildings.Add(building);
 
-//         // Create a test building
-//         var building = new Building
-//         {
-//             Id = 1,
-//             Name = "Test Building",
-//             FloorPlanWidth = 15,
-//             FloorPlanHeight = 10
-//         };
-//         context.Buildings.Add(building);
-//         context.SaveChanges(); // Save immediately
+        // Create test desks
+        var desk1 = new Desk
+        {
+            Id = 1,
+            BuildingId = 1,
+            Description = "Desk 1",
+            PositionX = 1,
+            PositionY = 1,
+            Type = DeskType.RegularDesk,
+            IsInMaintenance = false
+        };
+        var desk2 = new Desk
+        {
+            Id = 2,
+            BuildingId = 1,
+            Description = "Desk 2",
+            PositionX = 2,
+            PositionY = 1,
+            Type = DeskType.RegularDesk,
+            IsInMaintenance = false
+        };
+        var desk3 = new Desk
+        {
+            Id = 3,
+            BuildingId = 1,
+            Description = "Conference Room",
+            PositionX = 5,
+            PositionY = 5,
+            Type = DeskType.ConferenceRoom,
+            IsInMaintenance = false
+        };
+        context.Desks.AddRange(desk1, desk2, desk3);
 
-//         // Add operating hours (Monday-Friday 8:00-18:00)
-//         var operatingHours = new List<OperatingHours>
-//         {
-//             new() { Id = 1, BuildingId = 1, DayOfWeek = DayOfWeek.Monday, OpeningTime = new TimeOnly(8, 0), ClosingTime = new TimeOnly(18, 0), IsClosed = false },
-//             new() { Id = 2, BuildingId = 1, DayOfWeek = DayOfWeek.Tuesday, OpeningTime = new TimeOnly(8, 0), ClosingTime = new TimeOnly(18, 0), IsClosed = false },
-//             new() { Id = 3, BuildingId = 1, DayOfWeek = DayOfWeek.Wednesday, OpeningTime = new TimeOnly(8, 0), ClosingTime = new TimeOnly(18, 0), IsClosed = false },
-//             new() { Id = 4, BuildingId = 1, DayOfWeek = DayOfWeek.Thursday, OpeningTime = new TimeOnly(8, 0), ClosingTime = new TimeOnly(18, 0), IsClosed = false },
-//             new() { Id = 5, BuildingId = 1, DayOfWeek = DayOfWeek.Friday, OpeningTime = new TimeOnly(8, 0), ClosingTime = new TimeOnly(18, 0), IsClosed = false },
-//             new() { Id = 6, BuildingId = 1, DayOfWeek = DayOfWeek.Saturday, OpeningTime = new TimeOnly(8, 0), ClosingTime = new TimeOnly(18, 0), IsClosed = true },
-//             new() { Id = 7, BuildingId = 1, DayOfWeek = DayOfWeek.Sunday, OpeningTime = new TimeOnly(8, 0), ClosingTime = new TimeOnly(18, 0), IsClosed = true }
-//         };
-//         context.OperatingHours.AddRange(operatingHours);
-//         context.SaveChanges(); // Save immediately
+        // Create test users
+        var user1 = new User
+        {
+            Id = "user1",
+            Name = "John",
+            Surname = "Doe",
+            Email = "john.doe@test.com",
+            Password = "password123",
+            Role = UserRole.User
+        };
+        var user2 = new User
+        {
+            Id = "user2",
+            Name = "Jane",
+            Surname = "Smith",
+            Email = "jane.smith@test.com",
+            Password = "password456",
+            Role = UserRole.Admin
+        };
+        context.Users.AddRange(user1, user2);
 
-//         // Create test desks
-//         var desk1 = new Desk { Id = 1, BuildingId = 1, Description = "Desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk };
-//         var desk2 = new Desk { Id = 2, BuildingId = 1, Description = "Desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk };
-//         var desk3 = new Desk { Id = 3, BuildingId = 1, Description = "Conference Room", PositionX = 5, PositionY = 5, Type = DeskType.ConferenceRoom };
-//         context.Desks.AddRange(desk1, desk2, desk3);
-//         context.SaveChanges(); // Save immediately
+        context.SaveChanges();
+    }
 
-//         // Create a test user
-//         var user = new User
-//         {
-//             Id = "user1",
-//             Name = "User",
-//             Surname = "Tester",
-//             Email = "test@example.com",
-//             Password = "passwordTest1",
-//             Role = UserRole.User
-//         };
-//         context.Users.Add(user);
+    /// <summary>
+    /// Creates a test reservation
+    /// </summary>
+    public static Reservation CreateTestReservation(
+        AppDbContext context,
+        string userId,
+        int deskId,
+        DateOnly date,
+        ReservationStatus status = ReservationStatus.Active,
+        Guid? groupId = null)
+    {
+        var reservation = new Reservation
+        {
+            UserId = userId,
+            DeskId = deskId,
+            ReservationDate = date,
+            Status = status,
+            ReservationGroupId = groupId ?? Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow
+        };
+        context.Reservations.Add(reservation);
+        context.SaveChanges();
 
-//         context.SaveChanges();
-//     }
+        return reservation;
+    }
 
-//     /// <summary>
-//     /// Creates a reservation with time spans for testing
-//     /// </summary>
-//     public static Reservation CreateTestReservation(
-//         AppDbContext context,
-//         string userId,
-//         int deskId,
-//         DateOnly date,
-//         params (TimeOnly start, TimeOnly end)[] timeSpans)
-//     {
-//         var reservation = new Reservation
-//         {
-//             UserId = userId,
-//             DeskId = deskId,
-//             ReservationDate = date,
-//             Status = ReservationStatus.Active
-//         };
-//         context.Reservations.Add(reservation);
-//         context.SaveChanges();
+    /// <summary>
+    /// Creates multiple test reservations with the same group ID
+    /// </summary>
+    public static List<Reservation> CreateTestReservationGroup(
+        AppDbContext context,
+        string userId,
+        int deskId,
+        List<DateOnly> dates,
+        ReservationStatus status = ReservationStatus.Active)
+    {
+        var groupId = Guid.NewGuid();
+        var reservations = new List<Reservation>();
 
-//         foreach (var (start, end) in timeSpans)
-//         {
-//             int id;
-//             lock (_lock)
-//             {
-//                 id = _globalIdCounter++;
-//             }
+        foreach (var date in dates)
+        {
+            var reservation = CreateTestReservation(context, userId, deskId, date, status, groupId);
+            reservations.Add(reservation);
+        }
 
-//             var timeSpan = new ReservationTimeSpan
-//             {
-//                 Id = id, // In-memory DB requires explicit unique ID
-//                 ReservationId = reservation.Id,
-//                 StartTime = start,
-//                 EndTime = end,
-//                 Status = ReservationStatus.Active
-//             };
-//             context.ReservationTimeSpans.Add(timeSpan);
-//         }
-//         context.SaveChanges();
+        return reservations;
+    }
+}
 
-//         return reservation;
-//     }
-// }

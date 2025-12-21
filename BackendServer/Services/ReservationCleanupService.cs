@@ -26,6 +26,9 @@ public class ReservationCleanupService : BackgroundService
         _checkInterval = TimeSpan.FromMinutes(_options.ReservationCleanupIntervalMinutes);
     }
 
+    /// <summary>
+    /// Main execution loop that runs periodically to update expired reservations
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation(
@@ -53,6 +56,9 @@ public class ReservationCleanupService : BackgroundService
         _logger.LogInformation("Reservation Cleanup Service stopped");
     }
 
+    /// <summary>
+    /// Finds and updates all expired reservations to Completed status
+    /// </summary>
     private async Task UpdateExpiredReservations(CancellationToken cancellationToken)
     {
         // Create a new scope to get a scoped DbContext
@@ -65,7 +71,7 @@ public class ReservationCleanupService : BackgroundService
 
         // Find all active reservations where the date has passed
         var expiredReservations = await dbContext.Reservations
-            .Where(r => r.Status == ReservationStatus.Active && 
+            .Where(r => r.Status == ReservationStatus.Active &&
                        r.ReservationDate < today)
             .ToListAsync(cancellationToken);
 
@@ -81,7 +87,7 @@ public class ReservationCleanupService : BackgroundService
         foreach (var reservation in expiredReservations)
         {
             reservation.Status = ReservationStatus.Completed;
-            
+
             _logger.LogDebug(
                 "Updated reservation {ReservationId} for desk {DeskId} on {Date} to Completed",
                 reservation.Id,
@@ -91,12 +97,15 @@ public class ReservationCleanupService : BackgroundService
 
         // Save changes
         var updatedCount = await dbContext.SaveChangesAsync(cancellationToken);
-        
+
         _logger.LogInformation(
             "Successfully updated {Count} reservations to Completed status",
             updatedCount);
     }
 
+    /// <summary>
+    /// Called when the service is stopping
+    /// </summary>
     public override async Task StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Reservation Cleanup Service is stopping");

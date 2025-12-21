@@ -2,11 +2,16 @@ using FluentValidation;
 using DeskBookingService.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace DeskBookingService.Services;
+namespace DeskBookingService.Services.Validators;
 
+/// <summary>
+/// FluentValidation validator for Reservation entity
+/// Validates user ID, desk ID, date, and checks for conflicts
+/// </summary>
 public class ReservationValidator : AbstractValidator<Reservation>
 {
     private readonly AppDbContext _context;
+
     public ReservationValidator(AppDbContext context)
     {
         _context = context;
@@ -37,6 +42,9 @@ public class ReservationValidator : AbstractValidator<Reservation>
             .WithMessage("You already have a reservation on this date");
     }
 
+    /// <summary>
+    /// Checks if the user has no conflicting reservation on the same date
+    /// </summary>
     private async Task<bool> UserHasNoConflictingReservation(Reservation reservation)
     {
         return !await _context.Reservations
@@ -47,6 +55,9 @@ public class ReservationValidator : AbstractValidator<Reservation>
             .AnyAsync();
     }
 
+    /// <summary>
+    /// Checks if the desk has no conflicting active reservation on the same date
+    /// </summary>
     private async Task<bool> HasNoDeskConflict(Reservation reservation)
     {
         return !await _context.Reservations
@@ -57,11 +68,17 @@ public class ReservationValidator : AbstractValidator<Reservation>
             .AnyAsync();
     }
 
+    /// <summary>
+    /// Checks if a user exists in the database
+    /// </summary>
     private async Task<bool> UserExists(string userId)
     {
         return await _context.Users.AnyAsync(u => u.Id == userId);
     }
 
+    /// <summary>
+    /// Checks if a desk exists in the database
+    /// </summary>
     private async Task<bool> DeskExists(int deskId)
     {
         return await _context.Desks.AnyAsync(d => d.Id == deskId);

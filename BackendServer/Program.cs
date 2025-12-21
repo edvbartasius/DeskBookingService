@@ -1,6 +1,7 @@
 using DeskBookingService.DatabaseSeeder;
 using DeskBookingService.Configurations;
 using DeskBookingService.Services;
+using DeskBookingService.Services.Validators;
 using Mapster;
 using FluentValidation;
 

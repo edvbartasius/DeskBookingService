@@ -21,6 +21,11 @@ namespace DeskBookingService.Controllers
             _mapper = mapper;
             _validator = validator;
         }
+
+        /// <summary>
+        /// Retrieves all users from the database
+        /// </summary>
+        /// <returns>List of user DTOs</returns>
         [HttpGet("get-users")]
         public async Task<IActionResult> GetUsers()
         {
@@ -28,10 +33,15 @@ namespace DeskBookingService.Controllers
             var userDtos = _mapper.Map<List<UserDto>>(users);
             return Ok(userDtos);
         }
+
+        /// <summary>
+        /// Adds a new user to the database
+        /// </summary>
+        /// <param name="userDto">User data transfer object containing user information</param>
+        /// <returns>Created user object or error message</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddUser([FromBody] UserDto userDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(userDto));
             try
             {
                 var user = _mapper.Map<User>(userDto);
@@ -66,6 +76,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a user from the database by ID
+        /// </summary>
+        /// <param name="id">User ID to delete</param>
+        /// <returns>Success or error message</returns>
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(string id)
         {
@@ -85,10 +100,16 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
             }
         }
+
+        /// <summary>
+        /// Updates an existing user's information
+        /// </summary>
+        /// <param name="id">User ID to update</param>
+        /// <param name="userDto">Updated user data</param>
+        /// <returns>Success or error message</returns>
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto userDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(userDto));
             try
             {
                 var user = await _context.Users.FindAsync(id);
@@ -97,7 +118,12 @@ namespace DeskBookingService.Controllers
                     return NotFound($"User with ID: {id}, not found");
                 }
 
-                _mapper.Map(userDto, user);
+                // Manually update properties (don't update Id as it's a key)
+                user.Name = userDto.Name;
+                user.Surname = userDto.Surname;
+                user.Email = userDto.Email;
+                user.Password = userDto.Password;
+                user.Role = userDto.Role;
 
                 // Validate using FluentValidation
                 var validationResult = await _validator.ValidateAsync(user);
@@ -117,6 +143,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Registers a new user account
+        /// </summary>
+        /// <param name="userDto">User registration data</param>
+        /// <returns>Created user DTO or error message</returns>
         [HttpPost("register-user")]
         public async Task<IActionResult> Register([FromBody] UserDto userDto)
         {
@@ -139,7 +170,7 @@ namespace DeskBookingService.Controllers
                 user.Role = UserRole.User;
                 // Since no authentification is needed, store plaintext password
                 // In production, use proper password encryption and security measures
-                
+
                 _context.Users.Add(user);
                 await _context.SaveChangesAsync();
 
@@ -151,6 +182,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Authenticates a user and returns their information
+        /// </summary>
+        /// <param name="loginDto">Login credentials (email and password)</param>
+        /// <returns>User DTO if successful, error message otherwise</returns>
         [HttpPost("login-user")]
         public async Task<IActionResult> LoginUser([FromBody] LoginDto loginDto)
         {
@@ -173,7 +209,8 @@ namespace DeskBookingService.Controllers
                     return BadRequest("Invalid email or password");
                 }
                 return Ok(loggedInUser);
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
             }
@@ -234,7 +271,7 @@ namespace DeskBookingService.Controllers
             try
             {
                 return await _context.Users.AnyAsync(u => u.Email == email);
-            } 
+            }
             catch
             {
                 return false;

@@ -25,6 +25,10 @@ namespace DeskBookingService.Controllers
             _validator = validator;
         }
 
+        /// <summary>
+        /// Retrieves all buildings from the database
+        /// </summary>
+        /// <returns>List of building DTOs</returns>
         [HttpGet("get-buildings")]
         public async Task<IActionResult> GetBuildings()
         {
@@ -40,6 +44,11 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Deletes a building from the database by ID
+        /// </summary>
+        /// <param name="id">Building ID to delete</param>
+        /// <returns>Success or error message</returns>
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteBuilding(int id)
         {
@@ -59,6 +68,11 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
             }
         }
+        /// <summary>
+        /// Adds a new building to the database
+        /// </summary>
+        /// <param name="buildingDto">Building data transfer object</param>
+        /// <returns>Created building object or error message</returns>
         [HttpPost("add")]
         public async Task<IActionResult> AddBuilding([FromBody] BuildingDto buildingDto)
         {
@@ -67,7 +81,7 @@ namespace DeskBookingService.Controllers
             {
                 var building = _mapper.Map<Building>(buildingDto);
 
-                // Validate using FluentValidation
+                // Validate
                 var validationResult = await _validator.ValidateAsync(building);
                 if (!validationResult.IsValid)
                 {
@@ -85,6 +99,12 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Updates an existing building's information
+        /// </summary>
+        /// <param name="id">Building ID to update</param>
+        /// <param name="buildingDto">Updated building data</param>
+        /// <returns>Success or error message</returns>
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateBuilding(int id, [FromBody] BuildingDto buildingDto)
         {
@@ -117,6 +137,13 @@ namespace DeskBookingService.Controllers
             }
         }
 
+        /// <summary>
+        /// Retrieves the floor plan for a building with desk availability status for a specific date
+        /// </summary>
+        /// <param name="buildingId">Building ID</param>
+        /// <param name="date">Date to check desk availability</param>
+        /// <param name="userId">User ID to identify user's own reservations</param>
+        /// <returns>Floor plan DTO with desk statuses</returns>
         [HttpGet("get-floor-plan/{buildingId}/{date}/{userId}")]
         public async Task<IActionResult> GetFloorPlan(int buildingId, DateOnly date, string userId)
         {
@@ -186,6 +213,11 @@ namespace DeskBookingService.Controllers
 
         }
 
+        /// <summary>
+        /// Retrieves the days of the week when a building is closed
+        /// </summary>
+        /// <param name="buildingId">Building ID</param>
+        /// <returns>List of closed days of the week</returns>
         [HttpGet("closed-dates/{buildingId}")]
         public async Task<IActionResult> GetBuildingClosedDate(int buildingId)
         {
@@ -204,9 +236,10 @@ namespace DeskBookingService.Controllers
                     .Where(oh => oh.IsClosed)
                     .Select(oh => oh.DayOfWeek)
                     .ToList();
-                
+
                 return Ok(closedDates);
-            } catch (DbException ex)
+            }
+            catch (DbException ex)
             {
                 return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
             }

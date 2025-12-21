@@ -2,8 +2,12 @@ using FluentValidation;
 using DeskBookingService.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace DeskBookingService.Services;
+namespace DeskBookingService.Services.Validators;
 
+/// <summary>
+/// FluentValidation validator for Desk entity
+/// Validates desk description, building ID, position coordinates, and ensures position is within floor plan bounds
+/// </summary>
 public class DeskValidator : AbstractValidator<Desk>
 {
     private readonly AppDbContext _context;
@@ -35,11 +39,17 @@ public class DeskValidator : AbstractValidator<Desk>
             .WithMessage("Desk position is outside the building's floor plan dimensions");
     }
 
+    /// <summary>
+    /// Checks if a building exists in the database
+    /// </summary>
     private async Task<bool> BuildingExists(int buildingId)
     {
         return await _context.Buildings.AnyAsync(b => b.Id == buildingId);
     }
 
+    /// <summary>
+    /// Validates that the desk position is within the building's floor plan dimensions
+    /// </summary>
     private async Task<bool> IsPositionWithinFloorPlan(Desk desk)
     {
         var building = await _context.Buildings

@@ -2,12 +2,10 @@ using BackendServer.Tests.Helpers;
 using DeskBookingService;
 using DeskBookingService.Models;
 using DeskBookingService.Services;
-using FluentAssertions;
 using Xunit;
 
 namespace BackendServer.Tests.Services;
 
-[Collection("Sequential")]
 public class ReservationValidationServiceTests : IDisposable
 {
     private readonly AppDbContext _context;
@@ -15,8 +13,9 @@ public class ReservationValidationServiceTests : IDisposable
 
     public ReservationValidationServiceTests()
     {
-        // Create a unique database for each test
-        _context = TestDbContextFactory.CreateInMemoryContext($"TestDb_{Guid.NewGuid()}");
+        // Use a unique database name for each test instance
+        var databaseName = $"ReservationValidationTests_{Guid.NewGuid()}_{DateTime.UtcNow.Ticks}";
+        _context = TestDbContextFactory.CreateInMemoryContext(databaseName);
         TestDbContextFactory.SeedTestData(_context);
         _service = new ReservationValidationService(_context);
     }
@@ -27,329 +26,306 @@ public class ReservationValidationServiceTests : IDisposable
         _context.Dispose();
     }
 
-    #region ValidateNoConflicts Tests
+    #region IsDeskAvailable Tests
 
     [Fact]
-    public async Task ValidateNoConflicts_NoExistingReservations_ReturnsTrue()
+    public async Task IsDeskAvailable_NoReservations_ReturnsTrue()
     {
         // Arrange
         var deskId = 1;
         var date = new DateOnly(2025, 12, 25);
-        var startTime = new TimeOnly(9, 0);
-        var endTime = new TimeOnly(12, 0);
 
         // Act
-        var result = await _service.ValidateNoConflicts(deskId, date, startTime, endTime);
+        var result = await _service.IsDeskAvailable(deskId, date);
 
         // Assert
-        result.Should().BeTrue();
+        Assert.True(result);
     }
 
     [Fact]
-    public async Task ValidateNoConflicts_ExactOverlap_ReturnsFalse()
+    public async Task IsDeskAvailable_DeskAlreadyBooked_ReturnsFalse()
     {
         // Arrange
         var deskId = 1;
         var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
+        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date);
 
-        // Act - Try to book exact same time
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(10, 0), new TimeOnly(12, 0));
+        // Act
+        var result = await _service.IsDeskAvailable(deskId, date);
 
         // Assert
-        result.Should().BeFalse();
+        Assert.False(result);
     }
 
     [Fact]
-    public async Task ValidateNoConflicts_PartialOverlapAtStart_ReturnsFalse()
+    public async Task IsDeskAvailable_CancelledReservation_ReturnsTrue()
     {
         // Arrange
         var deskId = 1;
         var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
+        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, ReservationStatus.Cancelled);
 
-        // Act - New reservation 09:00-11:00 overlaps with existing 10:00-12:00
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(9, 0), new TimeOnly(11, 0));
+        // Act
+        var result = await _service.IsDeskAvailable(deskId, date);
 
         // Assert
-        result.Should().BeFalse();
+        Assert.True(result);
     }
 
     [Fact]
-    public async Task ValidateNoConflicts_PartialOverlapAtEnd_ReturnsFalse()
+    public async Task IsDeskAvailable_WithExcludeReservationId_IgnoresOwnReservation()
     {
         // Arrange
         var deskId = 1;
         var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
+        var reservation = TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date);
 
-        // Act - New reservation 11:00-13:00 overlaps with existing 10:00-12:00
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(11, 0), new TimeOnly(13, 0));
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_NewContainsExisting_ReturnsFalse()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - New reservation 09:00-13:00 completely contains existing 10:00-12:00
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(9, 0), new TimeOnly(13, 0));
+        // Act
+        var result = await _service.IsDeskAvailable(deskId, date, reservation.Id);
 
         // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_ExistingContainsNew_ReturnsFalse()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(9, 0), new TimeOnly(13, 0)));
-
-        // Act - New reservation 10:00-12:00 is contained within existing 09:00-13:00
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(10, 0), new TimeOnly(12, 0));
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_BackToBack_EndsWhenNextStarts_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - New reservation 12:00-14:00 starts exactly when existing ends
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(12, 0), new TimeOnly(14, 0));
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_BackToBack_StartsWhenPreviousEnds_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - New reservation 08:00-10:00 ends exactly when existing starts
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(8, 0), new TimeOnly(10, 0));
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_CompletelyBefore_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - New reservation 08:00-09:00 is completely before existing
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(8, 0), new TimeOnly(9, 0));
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_CompletelyAfter_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - New reservation 13:00-15:00 is completely after existing
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(13, 0), new TimeOnly(15, 0));
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_DifferentDesk_ReturnsTrue()
-    {
-        // Arrange
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", 1, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - Same time, different desk
-        var result = await _service.ValidateNoConflicts(2, date, new TimeOnly(10, 0), new TimeOnly(12, 0));
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_DifferentDate_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, new DateOnly(2025, 12, 25), (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - Same desk and time, different date
-        var result = await _service.ValidateNoConflicts(deskId, new DateOnly(2025, 12, 26), new TimeOnly(10, 0), new TimeOnly(12, 0));
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_CancelledReservation_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        var reservation = TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Cancel the reservation
-        reservation.Status = ReservationStatus.Cancelled;
-        _context.SaveChanges();
-
-        // Act - Try to book same time (cancelled reservation should not conflict)
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(10, 0), new TimeOnly(12, 0));
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ValidateNoConflicts_WithExcludeReservationId_IgnoresOwnReservation()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        var reservation = TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, (new TimeOnly(10, 0), new TimeOnly(12, 0)));
-
-        // Act - Check conflict but exclude own reservation (useful for updates)
-        var result = await _service.ValidateNoConflicts(deskId, date, new TimeOnly(10, 0), new TimeOnly(12, 0), excludeReservationId: reservation.Id);
-
-        // Assert
-        result.Should().BeTrue();
+        Assert.True(result);
     }
 
     #endregion
 
-    #region ValidateOperatingHours Tests
+    #region ValidateDateNotInPast Tests
 
     [Fact]
-    public async Task ValidateOperatingHours_WithinHours_ReturnsValid()
-    {
-        // Arrange - Building 1 is open 8:00-18:00 on weekdays
-        var buildingId = 1;
-        var date = new DateOnly(2025, 12, 22); // Monday
-        var startTime = new TimeOnly(9, 0);
-        var endTime = new TimeOnly(17, 0);
-
-        // Act
-        var (isValid, errorMessage) = await _service.ValidateOperatingHours(buildingId, date, startTime, endTime);
-
-        // Assert
-        isValid.Should().BeTrue();
-        errorMessage.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task ValidateOperatingHours_ExactlyAtOpeningAndClosing_ReturnsValid()
+    public void ValidateDateNotInPast_FutureDate_ReturnsValid()
     {
         // Arrange
-        var buildingId = 1;
-        var date = new DateOnly(2025, 12, 22); // Monday
-        var startTime = new TimeOnly(8, 0);  // Exactly at opening
-        var endTime = new TimeOnly(18, 0);    // Exactly at closing
+        var futureDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
 
         // Act
-        var (isValid, errorMessage) = await _service.ValidateOperatingHours(buildingId, date, startTime, endTime);
+        var (isValid, errorMessage) = _service.ValidateDateNotInPast(futureDate);
 
         // Assert
-        isValid.Should().BeTrue();
-        errorMessage.Should().BeNull();
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
     }
 
     [Fact]
-    public async Task ValidateOperatingHours_StartsBeforeOpening_ReturnsInvalid()
+    public void ValidateDateNotInPast_Today_ReturnsValid()
     {
         // Arrange
-        var buildingId = 1;
-        var date = new DateOnly(2025, 12, 22); // Monday
-        var startTime = new TimeOnly(7, 59);  // 1 minute before opening
-        var endTime = new TimeOnly(10, 0);
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         // Act
-        var (isValid, errorMessage) = await _service.ValidateOperatingHours(buildingId, date, startTime, endTime);
+        var (isValid, errorMessage) = _service.ValidateDateNotInPast(today);
 
         // Assert
-        isValid.Should().BeFalse();
-        errorMessage.Should().Contain("before opening time");
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
     }
 
     [Fact]
-    public async Task ValidateOperatingHours_EndsAfterClosing_ReturnsInvalid()
+    public void ValidateDateNotInPast_PastDate_ReturnsInvalid()
     {
         // Arrange
-        var buildingId = 1;
-        var date = new DateOnly(2025, 12, 22); // Monday
-        var startTime = new TimeOnly(16, 0);
-        var endTime = new TimeOnly(18, 1);     // 1 minute after closing
+        var pastDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
 
         // Act
-        var (isValid, errorMessage) = await _service.ValidateOperatingHours(buildingId, date, startTime, endTime);
+        var (isValid, errorMessage) = _service.ValidateDateNotInPast(pastDate);
 
         // Assert
-        isValid.Should().BeFalse();
-        errorMessage.Should().Contain("after closing time");
+        Assert.False(isValid);
+        Assert.Contains("Cannot make reservations for past dates", errorMessage);
     }
 
+    #endregion
+
+    #region ValidateBookingSize Tests
+
     [Fact]
-    public async Task ValidateOperatingHours_BuildingClosed_ReturnsInvalid()
+    public void ValidateBookingSize_WithinLimit_ReturnsValid()
     {
         // Arrange
-        var buildingId = 1;
-        var date = new DateOnly(2025, 12, 20); // Saturday - building is closed
-        var startTime = new TimeOnly(9, 0);
-        var endTime = new TimeOnly(17, 0);
+        var reservationCount = 5;
 
         // Act
-        var (isValid, errorMessage) = await _service.ValidateOperatingHours(buildingId, date, startTime, endTime);
+        var (isValid, errorMessage) = _service.ValidateBookingSize(reservationCount);
 
         // Assert
-        isValid.Should().BeFalse();
-        errorMessage.Should().Contain("closed");
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
     }
 
     [Fact]
-    public async Task ValidateOperatingHours_NoOperatingHoursConfigured_ReturnsInvalid()
+    public void ValidateBookingSize_ExactlyAtLimit_ReturnsValid()
     {
-        // Arrange - Create a building without operating hours
-        var newBuilding = new Building { Id = 99, Name = "Building Without Hours" };
-        _context.Buildings.Add(newBuilding);
-        _context.SaveChanges();
-
-        var date = new DateOnly(2025, 12, 22);
-        var startTime = new TimeOnly(9, 0);
-        var endTime = new TimeOnly(17, 0);
+        // Arrange
+        var reservationCount = 7;
 
         // Act
-        var (isValid, errorMessage) = await _service.ValidateOperatingHours(99, date, startTime, endTime);
+        var (isValid, errorMessage) = _service.ValidateBookingSize(reservationCount);
 
         // Assert
-        isValid.Should().BeFalse();
-        errorMessage.Should().Contain("No operating hours configured");
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
+    }
+
+    [Fact]
+    public void ValidateBookingSize_ExceedsLimit_ReturnsInvalid()
+    {
+        // Arrange
+        var reservationCount = 8;
+
+        // Act
+        var (isValid, errorMessage) = _service.ValidateBookingSize(reservationCount);
+
+        // Assert
+        Assert.False(isValid);
+        Assert.Contains("Cannot create more than 7 reservations", errorMessage);
+    }
+
+    #endregion
+
+    #region ValidateUserActiveReservationsLimit Tests
+
+    [Fact]
+    public async Task ValidateUserActiveReservationsLimit_NoExistingReservations_ReturnsValid()
+    {
+        // Arrange
+        var userId = "user1";
+        var additionalReservations = 5;
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateUserActiveReservationsLimit(userId, additionalReservations);
+
+        // Assert
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
+    }
+
+    [Fact]
+    public async Task ValidateUserActiveReservationsLimit_WithinLimit_ReturnsValid()
+    {
+        // Arrange
+        var userId = "user1";
+        var additionalReservations = 5;
+
+        // Create 20 existing reservations
+        for (int i = 0; i < 20; i++)
+        {
+            TestDbContextFactory.CreateTestReservation(_context, userId, 1, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(i)));
+        }
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateUserActiveReservationsLimit(userId, additionalReservations);
+
+        // Assert
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
+    }
+
+    [Fact]
+    public async Task ValidateUserActiveReservationsLimit_ExceedsLimit_ReturnsInvalid()
+    {
+        // Arrange
+        var userId = "user1";
+        var additionalReservations = 5;
+
+        // Create 28 existing reservations (28 + 5 = 33 > 30)
+        for (int i = 0; i < 28; i++)
+        {
+            TestDbContextFactory.CreateTestReservation(_context, userId, 1, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(i)));
+        }
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateUserActiveReservationsLimit(userId, additionalReservations);
+
+        // Assert
+        Assert.False(isValid);
+        Assert.Contains("exceed the maximum limit of 30", errorMessage);
+    }
+
+    [Fact]
+    public async Task ValidateUserActiveReservationsLimit_CancelledReservationsNotCounted_ReturnsValid()
+    {
+        // Arrange
+        var userId = "user1";
+        var additionalReservations = 5;
+
+        // Create 28 cancelled reservations (should not count)
+        for (int i = 0; i < 28; i++)
+        {
+            TestDbContextFactory.CreateTestReservation(_context, userId, 1, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(i)), ReservationStatus.Cancelled);
+        }
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateUserActiveReservationsLimit(userId, additionalReservations);
+
+        // Assert
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
+    }
+
+    #endregion
+
+    #region ValidateReservation Tests
+
+    [Fact]
+    public async Task ValidateReservation_ValidReservation_ReturnsValid()
+    {
+        // Arrange
+        var deskId = 1;
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
+
+        // Assert
+        Assert.True(isValid);
+        Assert.Null(errorMessage);
+    }
+
+    [Fact]
+    public async Task ValidateReservation_PastDate_ReturnsInvalid()
+    {
+        // Arrange
+        var deskId = 1;
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
+
+        // Assert
+        Assert.False(isValid);
+        Assert.Contains("Cannot make reservations for past dates", errorMessage);
+    }
+
+    [Fact]
+    public async Task ValidateReservation_DeskNotFound_ReturnsInvalid()
+    {
+        // Arrange
+        var deskId = 999;
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
+
+        // Assert
+        Assert.False(isValid);
+        Assert.Contains("Desk with ID 999 not found", errorMessage);
+    }
+
+    [Fact]
+    public async Task ValidateReservation_DeskAlreadyBooked_ReturnsInvalid()
+    {
+        // Arrange
+        var deskId = 1;
+        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
+        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date);
+
+        // Act
+        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
+
+        // Assert
+        Assert.False(isValid);
+        Assert.Contains("already reserved", errorMessage);
     }
 
     #endregion
 }
+

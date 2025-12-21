@@ -1,5 +1,30 @@
 .vscode/
 BackendServer/bin/
 BackendServer/obj/
+BackendServer.Tests/bin/
+BackendServer.Tests/obj/
 
 .env.local
+
+# Build results
+BackendServer.Tests/[Dd]ebug/
+BackendServer.Tests/[Dd]ebugPublic/
+BackendServer.Tests/[Rr]elease/
+BackendServer.Tests/[Rr]eleases/
+BackendServer.Tests/x64/
+BackendServer.Tests/x86/
+BackendServer.Tests/[Ww][Ii][Nn]32/
+BackendServer.Tests/[Aa][Rr][Mm]/
+BackendServer.Tests/[Aa][Rr][Mm]64/
+BackendServer.Tests/bld/
+BackendServer.Tests/[Bb]in/
+BackendServer.Tests/[Oo]bj/
+BackendServer.Tests/[Ll]og/
+BackendServer.Tests/[Ll]ogs/
+
+# Test Results
+BackendServer.Tests/[Tt]est[Rr]esult*/
+BackendServer.Tests/[Bb]uild[Ll]og.*
+BackendServer.Tests/*.trx   
+BackendServer.Tests/*.coverage
+BackendServer.Tests/*.coveragexml
