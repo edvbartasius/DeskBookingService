@@ -35,7 +35,6 @@ namespace DeskBookingService.Controllers
             var reservations = await _context.Reservations
                 .Include(r => r.User)
                 .Include(r => r.Desk)
-                .Where(r => r.Status == ReservationStatus.Active)
                 .ToListAsync();
 
             var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
