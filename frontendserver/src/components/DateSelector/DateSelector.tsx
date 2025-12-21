@@ -9,6 +9,9 @@ interface DateSelectorProps {
   disabled?: boolean;
   bookedDates?: Date[]; // Dates already booked for the selected desk
   closedDates?: Date[]; // Dates when the office/building is closed
+  multiSelect?: boolean; // Enable multi-date selection
+  selectedDates?: Date[]; // For multi-select mode
+  onSelectedDatesChange?: (dates: Date[]) => void; // For multi-select mode
 }
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -21,7 +24,10 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   onSelectedDateChange,
   disabled = false,
   bookedDates = [],
-  closedDates = []
+  closedDates = [],
+  multiSelect = false,
+  selectedDates = [],
+  onSelectedDatesChange
 }) => {
   const today: Date = startOfDay(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -38,14 +44,26 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   const handleDateClick = (date: Date): void => {
     if (isDateDisabled(date) || disabled) return;
 
-    const isSameDate = selectedDate && sameDay(selectedDate, date);
+    if (multiSelect && onSelectedDatesChange) {
+      // Multi-select mode
+      const isAlreadySelected = selectedDates.some(d => sameDay(d, date));
 
-    if (isSameDate) {
-      onSelectedDateChange(null);
+      if (isAlreadySelected) {
+        onSelectedDatesChange(selectedDates.filter(d => !sameDay(d, date)));
+      } else {
+        onSelectedDatesChange([...selectedDates, date]);
+      }
     } else {
-      onSelectedDateChange(date);
+      // Single-select mode
+      const isSameDate = selectedDate && sameDay(selectedDate, date);
+
+      if (isSameDate) {
+        onSelectedDateChange(null);
+      } else {
+        onSelectedDateChange(date);
+      }
+      setShowModal(false);
     }
-    setShowModal(false);
   };
 
   const handlePrevMonth = () => {
@@ -101,7 +119,9 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
 
   const renderCalendarDay = (date: Date, dayIdx: number) => {
     const isCurrentMonth = date.getMonth() === currentMonth.getMonth();
-    const isSelected = selectedDate ? sameDay(selectedDate, date) : false;
+    const isSelected = multiSelect
+      ? selectedDates.some(d => sameDay(d, date))
+      : selectedDate ? sameDay(selectedDate, date) : false;
     const isDisabled = isDateDisabled(date);
     const isBlackout = isBlackoutDate(date);
     const isToday = sameDay(date, today);
@@ -160,30 +180,67 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
     );
   };
 
+  const getSelectedDatesLabel = () => {
+    if (selectedDates.length === 0) return "No dates selected";
+    if (selectedDates.length === 1) return getReservationDateLabel(selectedDates[0]);
+    return `${selectedDates.length} dates selected`;
+  };
+
   return (
     <>
-      <div className="d-flex align-items-center gap-2">
-        <span className="text-muted">Date:</span>
-        <strong>
-          {selectedDate ? getReservationDateLabel(selectedDate) : "Not selected"}
-        </strong>
-        <Button
-          variant="outline-primary"
-          size="sm"
-          onClick={() => setShowModal(true)}
-          disabled={disabled}
-        >
-          {selectedDate ? "Change Date" : "Select Date"}
-        </Button>
-      </div>
+      {!multiSelect ? (
+        <div className="d-flex align-items-center gap-2">
+          <span className="text-muted">Date:</span>
+          <strong>
+            {selectedDate ? getReservationDateLabel(selectedDate) : "Not selected"}
+          </strong>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => setShowModal(true)}
+            disabled={disabled}
+          >
+            {selectedDate ? "Change Date" : "Select Date"}
+          </Button>
+        </div>
+      ) : (
+        <div className="d-flex align-items-center gap-2">
+          <span className="text-muted">Dates:</span>
+          <strong>{getSelectedDatesLabel()}</strong>
+          <Button
+            variant="outline-primary"
+            size="sm"
+            onClick={() => setShowModal(true)}
+            disabled={disabled}
+          >
+            {selectedDates.length > 0 ? "Change Dates" : "Select Dates"}
+          </Button>
+        </div>
+      )}
 
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Select Booking Date</Modal.Title>
+          <Modal.Title>
+            {multiSelect ? "Select Booking Dates" : "Select Booking Date"}
+          </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {renderCalendar()}
+          {multiSelect && selectedDates.length > 0 && (
+            <div className="mt-3">
+              <small className="text-muted">
+                Selected: {selectedDates.map(d => format(d, "MMM d")).join(", ")}
+              </small>
+            </div>
+          )}
         </Modal.Body>
+        {multiSelect && (
+          <Modal.Footer>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>
+              Done
+            </Button>
+          </Modal.Footer>
+        )}
       </Modal>
     </>
   );

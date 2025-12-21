@@ -15,11 +15,11 @@ export interface DeskDto {
   id: number;
   description?: string;
   buildingId: number;
-  positionX: number; // Grid column 
-  positionY: number; // Grid row 
+  positionX: number; // Grid column
+  positionY: number; // Grid row
   status: DeskStatus;
   type: DeskType;
-  isReservedByUser: boolean;
+  isReservedByCaller: boolean; // True if the reservation belongs to the current user
   reservedByFullName: string;
   maintenanceReason?: string;
 }

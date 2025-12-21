@@ -41,7 +41,66 @@ namespace DeskBookingService.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateReservation(CreateReservationDTO dto)
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Received CreateReservation for ", dto.ReservationDates.Count, " reservations");
+            // Validate user exists
+            var user = await _context.Users.FindAsync(dto.UserId.ToString());
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            // Validate desk exists
+            var desk = await _context.Desks.FindAsync(dto.DeskId);
+            if (desk == null)
+            {
+                return BadRequest("Desk not found");
+            }
+
+            // Deduplicate dates first to avoid duplicate validation
+            var uniqueDates = dto.ReservationDates.Distinct().ToList();
+
+            // Validate all dates before creating any reservations (fail-fast)
+            foreach (var date in uniqueDates)
+            {
+                var validationResult = await _validationService.ValidateReservation(
+                    dto.DeskId,
+                    date
+                );
+
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new {
+                        error = validationResult.ErrorMessage,
+                        failedDate = date.ToString("yyyy-MM-dd")
+                    });
+                }
+            }
+
+            // Create all reservations at once
+            var reservations = uniqueDates.Select(date => new Reservation
+                {
+                    UserId = dto.UserId.ToString(),
+                    DeskId = dto.DeskId,
+                    ReservationDate = date,
+                    Status = ReservationStatus.Active,
+                    CreatedAt = DateTime.UtcNow
+                }).ToList();
+
+            try
+            {
+                // Add all reservations at once and save
+                _context.Reservations.AddRange(reservations);
+                await _context.SaveChangesAsync();
+
+                return Ok(new {
+                    success = true,
+                    message = $"Successfully created {reservations.Count} reservation(s)",
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Failed to create reservations: " + ex.Message);
+            }
         }
 
         [HttpGet("desk/{deskId}")]
@@ -69,16 +128,72 @@ namespace DeskBookingService.Controllers
             throw new NotImplementedException();
         }
 
-        [HttpDelete("my-reservations/{id}")]
-        public async Task<IActionResult> CancelReservation(int id)
+        [HttpPatch("my-reservations/cancel-single-day/{deskId}/{date}/{userId}")]
+        public async Task<IActionResult> CancelReservation(int deskId, DateOnly date, string userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Verify user (for production authentificate without passing userId in request)
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+                // Find reservation entry
+                var reservation = await _context.Reservations
+                    .Where(r => r.DeskId == deskId && 
+                    r.UserId == userId && 
+                    r.ReservationDate == date
+                    ).FirstOrDefaultAsync();
+
+                if (reservation == null)
+                {
+                    return NotFound($"No reservation found for desk: {deskId} on {date}");
+                }
+                // Soft delete
+                reservation.CanceledAt = DateTime.UtcNow;
+                reservation.Status = ReservationStatus.Cancelled;
+
+                await _context.SaveChangesAsync();
+                return Ok();
+
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Failed to cancel reservation: " + ex.Message);
+            }
         }
 
-        [HttpPost("my-reservations/cancel-date-range")]
-        public async Task<IActionResult> CancelReservationsForDateRange()
+        [HttpPatch("my-reservations/cancel-date-range/{deskId}/{userId}")]
+        public async Task<IActionResult> CancelReservationsForDateRange(int deskId, string userId)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // Verify user (for production authentificate without passing userId in request)
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+                // Find reservation entry
+                var reservations = await _context.Reservations
+                    .Where(r => r.DeskId == deskId && 
+                    r.UserId == userId
+                    ).ToListAsync();
+
+                foreach (var reservation in reservations)
+                {
+                    reservation.CanceledAt = DateTime.UtcNow;
+                    reservation.Status = ReservationStatus.Cancelled;
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Failed to cancel reservation(s): " + ex.Message);
+            }
         }
     }
 }

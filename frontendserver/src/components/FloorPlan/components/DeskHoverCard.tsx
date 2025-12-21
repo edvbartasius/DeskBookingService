@@ -1,5 +1,7 @@
 import React from 'react';
 import { DeskDto } from '../types/floorPlan.types.ts';
+import { getStatusBadgeVariant, getDeskStatusLabel, getDeskTypeLabel } from '../utils/deskHelpers.ts';
+import { DeskStatusContent } from '../../DeskStatusContent/index.tsx';
 
 interface DeskHoverCardProps {
   desk: DeskDto;
@@ -7,35 +9,6 @@ interface DeskHoverCardProps {
 }
 
 const DeskHoverCard: React.FC<DeskHoverCardProps> = ({ desk, cellSize }) => {
-  const getStatusBadgeVariant = (status?: number) => {
-    switch (status) {
-      case 0:
-        return 'success';
-      case 1:
-        return 'warning';
-      case 2:
-        return 'secondary';
-      default:
-        return 'secondary';
-    }
-  };
-
-  const getStatusLabel = (status?: number) => {
-    switch (status) {
-      case 0:
-        return 'Available';
-      case 1:
-        return 'Booked';
-      case 2:
-        return 'Unavailable';
-      default:
-        return 'Unknown';
-    }
-  };
-
-  const getDeskTypeLabel = (type: number) => {
-    return type === 0 ? 'Standard' : 'Conference';
-  };
 
   // Calculate position: place card to the right and slightly above the desk
   const cardX = desk.positionX * cellSize + cellSize + 10; // 10px offset from desk
@@ -67,13 +40,17 @@ const DeskHoverCard: React.FC<DeskHoverCardProps> = ({ desk, cellSize }) => {
           </div>
 
           {/* Status Badge */}
-          {desk.status !== undefined && (
-            <div className="mb-2">
-              <span className={`badge bg-${getStatusBadgeVariant(desk.status)}`}>
-                {getStatusLabel(desk.status)}
-              </span>
-            </div>
-          )}
+          <div className="mb-2">
+            <span className={`badge bg-${getStatusBadgeVariant(desk.status)}`}>
+              {getDeskStatusLabel(desk.status)}
+            </span>
+          </div>
+
+          {/* Divider */}
+          <hr className="my-2" />
+
+          {/* Status-specific content */}
+          <DeskStatusContent desk={desk} variant="compact" />
         </div>
       </div>
     </foreignObject>
