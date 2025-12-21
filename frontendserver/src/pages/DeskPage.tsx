@@ -4,7 +4,7 @@ import {
   DeskDto,
   FloorPlanCanvas
 } from "../components/FloorPlan/index.tsx";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Container, Row, Col, Card, ButtonGroup, Button } from "react-bootstrap";
 import { DateSelector, useDeskAvailability, useOfficeClosedDates } from "../components/DateSelector/index.tsx";
 import { startOfDay, addDays } from "date-fns";
 import { Building } from "../types/booking.types.tsx";
@@ -13,6 +13,8 @@ import { useUser } from "../contexts/UserContext.tsx";
 import { BuildingSelector } from "../components/BuildingSelector/index.tsx";
 import { DeskListView } from "../components/DeskListView/index.tsx";
 import { ReservationConfirmModal } from "../components/ReservationConfirmModal/index.tsx";
+import ConfirmationModal from "../components/ConfirmationModal.tsx";
+import "../styles/DeskPage.css";
 
 // Helper function to format Date to YYYY-MM-DD in local timezone
 const formatDateLocal = (date: Date): string => {
@@ -22,6 +24,8 @@ const formatDateLocal = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+type ViewMode = 'list' | 'floorplan';
+
 const DeskPage = () => {
   const { loggedInUser } = useUser();
   const [buildings, setBuildings] = useState<Building[]>([]);
@@ -29,6 +33,7 @@ const DeskPage = () => {
   const [floorPlan, setFloorPlan] = useState<FloorPlanDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingDesks, setLoadingDesks] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
 
   // Single-date reservation state
   const today = startOfDay(new Date());
@@ -41,6 +46,13 @@ const DeskPage = () => {
   const [isReservationSuccess, setIsReservationSuccess] = useState(false);
   const [isReservationLoading, setIsReservationLoading] = useState(false);
   const [reservationError, setReservationError] = useState<string | null>(null);
+
+  // Cancellation confirmation modal state
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [pendingCancellation, setPendingCancellation] = useState<{
+    desk: DeskDto;
+    cancelType: 'single' | 'range';
+  } | null>(null);
 
   // Fetch office closed dates
   const { closedDates, loading: loadingClosedDates } = useOfficeClosedDates(selectedBuilding?.id);
@@ -154,14 +166,15 @@ const DeskPage = () => {
     setReservationError(null);
   };
 
-  const handleCancelReservation = async (desk: DeskDto, cancelType: 'single' | 'range') => {
-    const confirmMessage = cancelType === 'single'
-      ? `Are you sure you want to cancel your reservation for ${desk.description || `Desk ${desk.id}`} on ${selectedDate?.toLocaleDateString()}?`
-      : `Are you sure you want to cancel ALL dates for your reservation at ${desk.description || `Desk ${desk.id}`}?`;
+  const handleCancelReservation = (desk: DeskDto, cancelType: 'single' | 'range') => {
+    setPendingCancellation({ desk, cancelType });
+    setShowCancelModal(true);
+  };
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+  const handleConfirmCancellation = async () => {
+    if (!pendingCancellation) return;
+
+    const { desk, cancelType } = pendingCancellation;
 
     try {
       let response;
@@ -192,6 +205,8 @@ const DeskPage = () => {
       // Extract error message from backend response
       const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Failed to cancel reservation. Please try again.';
       alert(`Error: ${errorMessage}`);
+    } finally {
+      setPendingCancellation(null);
     }
   };
 
@@ -202,94 +217,142 @@ const DeskPage = () => {
 
   return (
     <Container fluid className="py-4">
-      {/* Header */}
-      <Row className="mb-4">
-        <Col>
-          <h1>Desk Booking</h1>
-        </Col>
-      </Row>
+      <Card className="desk-page-card" style={{ backgroundColor: '#f8f9fa', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+        <Card.Body className="p-4">
+          {/* Header */}
+          <Row className="mb-4 align-items-center desk-page-header">
+            <Col md={6}>
+              <h1 className="mb-0">Desk Booking</h1>
+            </Col>
+            {selectedBuilding && (
+              <Col md={6} className="d-flex justify-content-end">
+                <ButtonGroup className="desk-page-view-toggle">
+                  <Button
+                    variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
+                    onClick={() => setViewMode('list')}
+                    title="List View"
+                  >
+                    <i className="bi bi-list-ul me-2"></i>
+                    List
+                  </Button>
+                  <Button
+                    variant={viewMode === 'floorplan' ? 'primary' : 'outline-primary'}
+                    onClick={() => setViewMode('floorplan')}
+                    title="Floor Plan View"
+                  >
+                    <i className="bi bi-map me-2"></i>
+                    Floor Plan
+                  </Button>
+                </ButtonGroup>
+              </Col>
+            )}
+          </Row>
 
-      {/* Building Selector */}
-      <Row className="mb-3">
-        <Col>
-          <BuildingSelector
-            buildings={buildings}
-            selectedBuilding={selectedBuilding}
-            onBuildingChange={handleBuildingChange}
-            loading={loading}
-          />
-        </Col>
-      </Row>
+          {/* Building Selector */}
+          <Row className="mb-3">
+            <Col>
+              <BuildingSelector
+                buildings={buildings}
+                selectedBuilding={selectedBuilding}
+                onBuildingChange={handleBuildingChange}
+                loading={loading}
+              />
+            </Col>
+          </Row>
 
-      {/* Date Selector - Full Width */}
-      {selectedBuilding && (
-        <Row className="mb-3">
-          <Col>
-            <Card>
-              <Card.Body>
-                <DateSelector
-                  selectedDate={selectedDate}
-                  onSelectedDateChange={setSelectedDate}
-                  closedDates={closedDates}
-                  bookedDates={[]}
-                  disabled={loading || loadingDesks || loadingClosedDates}
-                />
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      )}
+          {/* Date Selector - Full Width */}
+          {selectedBuilding && (
+            <Row className="mb-4 desk-page-view-transition">
+              <Col>
+                <Card className="desk-page-card" style={{ backgroundColor: '#ffffff' }}>
+                  <Card.Header className="desk-page-card-header">
+                    <h5 className="mb-0 d-flex align-items-center">
+                      <i className="bi bi-calendar-event me-2 text-primary"></i>
+                      Select Date
+                    </h5>
+                  </Card.Header>
+                  <Card.Body>
+                    <DateSelector
+                      selectedDate={selectedDate}
+                      onSelectedDateChange={setSelectedDate}
+                      closedDates={closedDates}
+                      bookedDates={[]}
+                      disabled={loading || loadingDesks || loadingClosedDates}
+                    />
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          )}
 
-      {/* Main Content - Floor Plan and Desk List Side by Side */}
-      {selectedBuilding && (
-        <Row>
-          {/* Floor Plan Canvas - Left Side */}
-          <Col lg={7} className="mb-3">
-            <Card style={{ height: '70vh' }}>
-              <Card.Header>
-                <h5 className="mb-0">Floor Plan</h5>
-              </Card.Header>
-              <Card.Body className="p-0" style={{ height: 'calc(70vh - 60px)' }}>
-                {floorPlan ? (
-                  <FloorPlanCanvas
-                    floorPlan={floorPlan}
-                    onDeskClick={handleReserveClick}
-                    onCancelClick={handleCancelReservation}
-                    selectedDeskId={deskToReserve?.id}
-                  />
-                ) : (
-                  <div className="d-flex justify-content-center align-items-center h-100">
-                    {loadingDesks ? (
-                      <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading floor plan...</span>
-                      </div>
-                    ) : (
-                      <p className="text-muted">Select a date to view the floor plan</p>
-                    )}
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
+          {/* Main Content - Dynamic Layout Based on View Mode */}
+          {selectedBuilding && (
+            <Row>
+              {/* Floor Plan Canvas */}
+              {viewMode === 'floorplan' && (
+                <Col lg={12} className="mb-3 desk-page-view-transition">
+                  <Card className="desk-page-card" style={{ height: '70vh', backgroundColor: '#ffffff' }}>
+                    <Card.Header className="desk-page-card-header">
+                      <h5 className="mb-0 d-flex align-items-center">
+                        <i className="bi bi-map me-2 text-primary"></i>
+                        Floor Plan
+                      </h5>
+                    </Card.Header>
+                    <Card.Body className="p-0" style={{ height: 'calc(70vh - 60px)' }}>
+                      {floorPlan ? (
+                        <FloorPlanCanvas
+                          floorPlan={floorPlan}
+                          onDeskClick={handleReserveClick}
+                          onCancelClick={handleCancelReservation}
+                          selectedDeskId={deskToReserve?.id}
+                        />
+                      ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100 desk-page-empty-state">
+                          {loadingDesks ? (
+                            <div className="text-center">
+                              <div className="spinner-border text-primary desk-page-spinner mb-3" role="status">
+                                <span className="visually-hidden">Loading floor plan...</span>
+                              </div>
+                              <p className="text-muted">Loading floor plan...</p>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <i className="bi bi-calendar-check"></i>
+                              <p className="text-muted">Select a date to view the floor plan</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </Col>
+              )}
 
-          {/* Desk List View - Right Side */}
-          <Col lg={5} className="mb-3">
-            <Card style={{ height: '70vh' }}>
-              <Card.Header>
-                <h5 className="mb-0">Available Desks</h5>
-              </Card.Header>
-              <Card.Body className="p-3" style={{ maxHeight: 'calc(70vh - 60px)', overflowY: 'auto' }}>
-                <DeskListView
-                  floorPlan={floorPlan}
-                  onReserveClick={handleReserveClick}
-                  onCancelClick={handleCancelReservation}
-                  loading={loadingDesks}
-                />
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      )}
+              {/* Desk List View */}
+              {viewMode === 'list' && (
+                <Col lg={12} className="mb-3 desk-page-view-transition">
+                  <Card className="desk-page-card" style={{ height: '70vh', backgroundColor: '#ffffff' }}>
+                    <Card.Header className="desk-page-card-header">
+                      <h5 className="mb-0 d-flex align-items-center">
+                        <i className="bi bi-list-ul me-2 text-primary"></i>
+                        Available Desks
+                      </h5>
+                    </Card.Header>
+                    <Card.Body className="p-3 desk-list-scrollable" style={{ maxHeight: 'calc(70vh - 60px)', overflowY: 'auto' }}>
+                      <DeskListView
+                        floorPlan={floorPlan}
+                        onReserveClick={handleReserveClick}
+                        onCancelClick={handleCancelReservation}
+                        loading={loadingDesks}
+                      />
+                    </Card.Body>
+                  </Card>
+                </Col>
+              )}
+            </Row>
+          )}
+        </Card.Body>
+      </Card>
 
       {/* Reservation Confirmation Modal */}
       <ReservationConfirmModal
@@ -303,6 +366,22 @@ const DeskPage = () => {
         bookedDates={bookedDates}
         closedDates={closedDates}
         initialDate={selectedDate}
+      />
+
+      {/* Cancellation Confirmation Modal */}
+      <ConfirmationModal
+        show={showCancelModal}
+        onHide={() => setShowCancelModal(false)}
+        onConfirm={handleConfirmCancellation}
+        title="Cancel Reservation"
+        message={
+          pendingCancellation?.cancelType === 'single'
+            ? `Are you sure you want to cancel your reservation for ${pendingCancellation.desk.description || `Desk ${pendingCancellation.desk.id}`} on ${selectedDate?.toLocaleDateString()}?`
+            : `Are you sure you want to cancel ALL dates for your reservation at ${pendingCancellation?.desk.description || `Desk ${pendingCancellation?.desk.id}`}?`
+        }
+        confirmText="Yes, Cancel"
+        cancelText="No, Keep It"
+        variant="danger"
       />
     </Container>
   );

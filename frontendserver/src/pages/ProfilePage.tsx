@@ -1,5 +1,4 @@
-import { Button, Card, Container } from "react-bootstrap";
-import ExpandableCardContainer, { CardConfig } from "../components/ExpandableCardContainer.tsx";
+import { Button, Card, Container, Row, Col } from "react-bootstrap";
 import { useUser } from "../contexts/UserContext.tsx";
 import { Link } from "react-router-dom";
 import LoginModal from '../components/LoginModal.tsx';
@@ -41,12 +40,11 @@ const ProfilePage = () => {
     } = useReservationHistory(loggedInUser?.id);
 
     // Card configurations
-    const cards: CardConfig[] = [
+    const cards = [
         {
             id: 0,
             title: "User Profile",
             description: "View your profile information",
-            allowExpand: false,
             content: (
                 <UserProfileContent
                     user={userProfile}
@@ -60,7 +58,6 @@ const ProfilePage = () => {
             id: 1,
             title: "Active Reservations",
             description: "View and manage your active reservations",
-            allowExpand: true,
             content: (
                 <ActiveReservationsContent
                     reservations={activeReservations}
@@ -75,7 +72,6 @@ const ProfilePage = () => {
             id: 2,
             title: "Reservation History",
             description: "View your past and cancelled reservations",
-            allowExpand: true,
             content: (
                 <ReservationHistoryContent
                     history={reservationHistory}
@@ -92,11 +88,26 @@ const ProfilePage = () => {
     // Render logged-in user view
     if (loggedInUser) {
         return (
-            <ExpandableCardContainer
-                cards={cards}
-                title="Profile Page"
-                cardsPerRow={3}
-            />
+            <Container fluid className="p-4">
+                <h1 className="text-center mb-4">Profile Page</h1>
+                <Row className="g-3">
+                    {cards.map((card) => (
+                        <Col key={card.id} xs={12} lg={4}>
+                            <Card className="h-100 d-flex flex-column">
+                                <Card.Header className="py-2">
+                                    <div className="text-center">
+                                        <h2>{card.title}</h2>
+                                        <p className="fs-6 mb-0">{card.description}</p>
+                                    </div>
+                                </Card.Header>
+                                <Card.Body className="overflow-auto" style={{ maxHeight: '600px' }}>
+                                    {card.content}
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            </Container>
         );
     }
 

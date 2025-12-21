@@ -3,6 +3,7 @@ import { Card, ListGroup, Badge, Button, Spinner, Alert } from 'react-bootstrap'
 import { GroupedReservation } from '../../types/reservation.types.ts';
 import { format, parseISO } from 'date-fns';
 import api from '../../services/api.ts';
+import ConfirmationModal from '../ConfirmationModal.tsx';
 
 interface ActiveReservationsContentProps {
   reservations: GroupedReservation[];
@@ -12,24 +13,30 @@ interface ActiveReservationsContentProps {
   onRefresh: () => void;
 }
 
-const ActiveReservationsContent = ({ 
-  reservations, 
-  loading, 
-  error, 
+const ActiveReservationsContent = ({
+  reservations,
+  loading,
+  error,
   userId,
-  onRefresh 
+  onRefresh
 }: ActiveReservationsContentProps) => {
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingCancellation, setPendingCancellation] = useState<{
+    reservationGroupId: string;
+    deskDescription: string;
+  } | null>(null);
 
-  const handleCancelGroup = async (reservationGroupId: string, deskDescription: string) => {
-    const confirmMessage = `Are you sure you want to cancel all reservations for ${deskDescription || 'this desk'}?`;
-    
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+  const handleCancelClick = (reservationGroupId: string, deskDescription: string) => {
+    setPendingCancellation({ reservationGroupId, deskDescription });
+    setShowConfirmModal(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!pendingCancellation) return;
 
     try {
       const response = await api.patch(
-        `reservations/my-reservations/cancel-booking-group/${reservationGroupId}/${userId}`
+        `reservations/my-reservations/cancel-booking-group/${pendingCancellation.reservationGroupId}/${userId}`
       );
 
       if (response.status === 200) {
@@ -40,6 +47,8 @@ const ActiveReservationsContent = ({
       console.error('Failed to cancel reservation group:', err);
       const errorMessage = err.response?.data?.error || err.response?.data || err.message || 'Failed to cancel reservation';
       alert(`Error: ${errorMessage}`);
+    } finally {
+      setPendingCancellation(null);
     }
   };
 
@@ -155,43 +164,51 @@ const ActiveReservationsContent = ({
         <ListGroup variant="flush">
           {reservations.map((group) => (
             <ListGroup.Item key={group.reservationGroupId} className="px-0">
-              <div className="d-flex justify-content-between align-items-start">
-                <div className="flex-grow-1">
-                  <h6 className="mb-1">
-                    {group.deskDescription || `Desk ${group.deskId}`}
-                    <Badge bg="secondary" className="ms-2">
-                      {group.reservationCount} {group.reservationCount === 1 ? 'day' : 'days'}
-                    </Badge>
-                    {group.hasToday && (
-                      <Badge bg="success" className="ms-1">Today</Badge>
-                    )}
-                  </h6>
-                  <p className="mb-1 text-muted small">
-                    <i className="bi bi-building me-1"></i>
-                    {group.buildingName || 'Unknown Building'}
-                  </p>
-                  <DatesDisplay dates={group.dates} />
-                  <p className="mb-0 text-muted small">
-                    Booked: {format(parseISO(group.createdAt), 'MMM dd, yyyy HH:mm')}
-                    {group.daysUntilFirst === 0 && ' • Starting today'}
-                    {group.daysUntilFirst === 1 && ' • Starting tomorrow'}
-                    {group.daysUntilFirst > 1 && ` • Starting in ${group.daysUntilFirst} days`}
-                  </p>
-                </div>
-                <div>
-                  <Button
-                    variant="outline-danger"
-                    size="sm"
-                    onClick={() => handleCancelGroup(group.reservationGroupId, group.deskDescription || `Desk ${group.deskId}`)}
-                  >
-                    Cancel All
-                  </Button>
-                </div>
+              <div>
+                <h6 className="mb-1">
+                  {group.deskDescription || `Desk ${group.deskId}`}
+                  <Badge bg="secondary" className="ms-2">
+                    {group.reservationCount} {group.reservationCount === 1 ? 'day' : 'days'}
+                  </Badge>
+                  {group.hasToday && (
+                    <Badge bg="success" className="ms-1">Today</Badge>
+                  )}
+                </h6>
+                <p className="mb-1 text-muted small">
+                  <i className="bi bi-building me-1"></i>
+                  {group.buildingName || 'Unknown Building'}
+                </p>
+                <DatesDisplay dates={group.dates} />
+                <p className="mb-2 text-muted small">
+                  Booked: {format(parseISO(group.createdAt), 'MMM dd, yyyy HH:mm')}
+                  {group.daysUntilFirst === 0 && ' • Starting today'}
+                  {group.daysUntilFirst === 1 && ' • Starting tomorrow'}
+                  {group.daysUntilFirst > 1 && ` • Starting in ${group.daysUntilFirst} days`}
+                </p>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="w-100"
+                  onClick={() => handleCancelClick(group.reservationGroupId, group.deskDescription || `Desk ${group.deskId}`)}
+                >
+                  Cancel
+                </Button>
               </div>
             </ListGroup.Item>
           ))}
         </ListGroup>
       )}
+
+      <ConfirmationModal
+        show={showConfirmModal}
+        onHide={() => setShowConfirmModal(false)}
+        onConfirm={handleConfirmCancel}
+        title="Cancel Reservation"
+        message={`Are you sure you want to cancel all reservations for ${pendingCancellation?.deskDescription || 'this desk'}?`}
+        confirmText="Yes, Cancel"
+        cancelText="No, Keep It"
+        variant="danger"
+      />
     </Card.Body>
   );
 };

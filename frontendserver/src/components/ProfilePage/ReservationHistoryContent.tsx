@@ -79,7 +79,6 @@ const ReservationHistoryContent = ({
               <div className="flex-grow-1">
                 <h6 className="mb-1">
                   {reservation.desk?.description || `Desk ${reservation.deskId}`}
-                  <span className="ms-2">{getStatusBadge(reservation.status)}</span>
                 </h6>
                 <p className="mb-1 small">
                   <i className="bi bi-calendar me-1"></i>
@@ -90,6 +89,10 @@ const ReservationHistoryContent = ({
                     Cancelled: {format(parseISO(reservation.canceledAt), 'MMM dd, yyyy HH:mm')}
                   </p>
                 )}
+              </div>
+              {/* Right: Status badge */}
+              <div className="ms-3 flex-shrink-0 d-flex align-items-start">
+                {getStatusBadge(reservation.status)}
               </div>
             </div>
           </ListGroup.Item>
