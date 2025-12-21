@@ -33,6 +33,9 @@ body {
     font-size: 1.2em;
     color: #666;
 }
+.database-viewer table td{
+    vertical-align: middle;
+}
 
 /* Responsive card widths - mobile first */
 @media (max-width: 767px) {
@@ -43,6 +46,18 @@ body {
     /* Hide expand button on mobile */
     .card .card-header button {
         display: none !important;
+    }
+
+    /* Ensure table is scrollable on mobile */
+    .card-body {
+        padding: 0.5rem !important;
+        overflow-x: auto;
+    }
+
+    /* Ensure table-responsive wrapper properly scrolls */
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
     }
 }
 

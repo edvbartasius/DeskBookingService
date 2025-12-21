@@ -129,7 +129,7 @@ const DeskPage = () => {
       };
 
       console.log("Booking request:", bookingRequest);
-      const url = `reservations/create`;
+      const url = `reservations/add`;
       const response = await api.post(url, bookingRequest);
 
       if (response.status === 200) {

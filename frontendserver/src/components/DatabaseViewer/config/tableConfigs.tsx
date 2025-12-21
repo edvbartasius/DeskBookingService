@@ -3,11 +3,12 @@ import { Button } from 'react-bootstrap';
 import { DatabaseService } from '../../../services/database.service.ts';
 import { TableName, User, Building, Desk, Reservation, UserRole, DeskStatus, ReservationStatus } from '../../../types/database.types.tsx';
 import { DeskType } from '../../../types/booking.types.tsx';
-import { formatUserRole, formatDeskStatus, formatDeskType, formatBoolean, formatDate, formatNullableText, formatReservationStatus, formatGuid } from '../utils/formatters.tsx';
+import { formatDate, formatNullableText, formatReservationStatus, formatGuid, formatUserRoleString, formatDeskTypeString, formatMaintenaceString, formatDeskStatusString } from '../utils/formatters.tsx';
 
 export interface ColumnConfig {
   key: string;
   label: string;
+  align?: 'left' | 'center' | 'right';
   render?: (value: any, record: any) => JSX.Element | string | null;
 }
 
@@ -38,7 +39,10 @@ export interface TableConfig {
 }
 
 export const createTableConfigs = (
-  handleViewDetails: (record: any, config: DetailViewConfig, detailTableType: TableName) => void
+  handleViewDetails: (record: any, config: DetailViewConfig, detailTableType: TableName) => void,
+  buildings?: Building[],
+  users?: User[],
+  desks?: Desk[]
 ): TableConfig[] => [
   {
     name: 'users' as TableName,
@@ -90,18 +94,19 @@ export const createTableConfigs = (
       ]
     },
     columns: [
-      { key: 'id', label: 'ID' },
+      { key: 'id', label: 'ID', render: (value: string | null) => formatGuid(value)},
       { key: 'name', label: 'Name' },
       { key: 'surname', label: 'Surname' },
       { key: 'email', label: 'Email' },
       {
         key: 'role',
         label: 'Role',
-        render: (role: UserRole) => formatUserRole(role)
+        render: (role: UserRole) => formatUserRoleString(role)
       },
       {
         key: 'reservations',
         label: 'Reservations',
+        align: 'center',
         render: (_value: any, user: User) => (
           <Button
             variant="link"
@@ -124,6 +129,7 @@ export const createTableConfigs = (
                   {
                     key: 'status',
                     label: 'Status',
+                    align: 'center',
                     render: (value: ReservationStatus) => formatReservationStatus(value)
                   },
                   {
@@ -171,7 +177,8 @@ export const createTableConfigs = (
         {
           key: 'status',
           label: 'Status',
-          render: (status: DeskStatus) => formatDeskStatus(status)
+          align: 'center',
+          render: (status: DeskStatus) => formatDeskStatusString(status)
         }
       ]
     },
@@ -183,6 +190,7 @@ export const createTableConfigs = (
       {
         key: 'desks',
         label: 'Desks',
+        align: 'center',
         render: (_value: any, building: Building) => (
           <Button
             variant="link"
@@ -204,7 +212,8 @@ export const createTableConfigs = (
                   {
                     key: 'status',
                     label: 'Status',
-                    render: (status: DeskStatus) => formatDeskStatus(status)
+                    align: 'center',
+                    render: (status: DeskStatus) => formatDeskStatusString(status)
                   }
                 ]
               };
@@ -285,22 +294,30 @@ export const createTableConfigs = (
         label: 'Description',
         render: (value: string | null) => formatNullableText(value)
       },
-      { key: 'buildingId', label: 'Building' },
+      {
+        key: 'buildingId',
+        label: 'Building',
+        render: (value: number) => {
+          const building = buildings?.find(b => b.id === value);
+          return building ? building.name : `Building #${value}`;
+        }
+      },
       { key: 'positionX', label: 'X' },
       { key: 'positionY', label: 'Y' },
       {
         key: 'type',
         label: 'Type',
-        render: (value: any) => formatDeskType(value as DeskType)
+        render: (value: any) => formatDeskTypeString(value as DeskType)
       },
       {
         key: 'isInMaintenance',
         label: 'Maintenance',
-        render: (value: boolean) => formatBoolean(value)
+        render: (value: boolean) => formatMaintenaceString(value)
       },
       {
         key: 'reservations',
         label: 'Reservations',
+        align: 'center',
         render: (_value: any, desk: Desk) => (
           <Button
             variant="link"
@@ -323,6 +340,7 @@ export const createTableConfigs = (
                   {
                     key: 'status',
                     label: 'Status',
+                    align: 'center',
                     render: (value: ReservationStatus) => formatReservationStatus(value)
                   },
                   {
@@ -352,23 +370,29 @@ export const createTableConfigs = (
       { key: 'id', label: 'ID', type: 'number', disabled: true },
       { key: 'userId', label: 'User', type: 'text', required: true },
       { key: 'deskId', label: 'Desk', type: 'number', required: true },
-      { key: 'reservationDate', label: 'Reservation Date', type: 'date', required: true },
-      {
-        key: 'status',
-        label: 'Status',
-        type: 'select',
-        required: true,
-        options: [
-          { value: ReservationStatus.Active, label: 'Active' },
-          { value: ReservationStatus.Completed, label: 'Completed' },
-          { value: ReservationStatus.Cancelled, label: 'Cancelled' }
-        ]
-      }
+      { key: 'reservationDate', label: 'Reservation Date', type: 'date', required: true }
     ],
     columns: [
       { key: 'id', label: 'ID' },
-      { key: 'userId', label: 'User ID' },
-      { key: 'deskId', label: 'Desk ID' },
+      {
+        key: 'userId',
+        label: 'User',
+        render: (value: string) => {
+          const user = users?.find(u => u.id === value);
+          return user ? `${user.name} ${user.surname}` : value;
+        }
+      },
+      {
+        key: 'deskId',
+        label: 'Desk',
+        render: (value: number) => {
+          const desk = desks?.find(d => d.id === value);
+          if (desk) {
+            return desk.description ? `Desk #${value} - ${desk.description}` : `Desk #${value}`;
+          }
+          return `Desk #${value}`;
+        }
+      },
       {
         key: 'reservationDate',
         label: 'Date',
@@ -378,6 +402,7 @@ export const createTableConfigs = (
       {
         key: 'status',
         label: 'Status',
+        align: 'center',
         render: (value: ReservationStatus) => formatReservationStatus(value)
       },
       {

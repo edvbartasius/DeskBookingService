@@ -88,7 +88,7 @@ const ProfilePage = () => {
     // Render logged-in user view
     if (loggedInUser) {
         return (
-            <Container fluid className="p-4">
+            <Container className="px-4">
                 <h1 className="text-center mb-4">Profile Page</h1>
                 <Row className="g-3">
                     {cards.map((card) => (

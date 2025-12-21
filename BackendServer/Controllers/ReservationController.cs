@@ -113,7 +113,7 @@ namespace DeskBookingService.Controllers
         /// </summary>
         /// <param name="dto">Reservation creation data including user ID, desk ID, and dates</param>
         /// <returns>Success message with count of created reservations or error message</returns>
-        [HttpPost("create")]
+        [HttpPost("add")]
         public async Task<IActionResult> CreateReservation(CreateReservationDTO dto)
         {
             Console.WriteLine("Received CreateReservation for ", dto.ReservationDates.Count, " reservations");

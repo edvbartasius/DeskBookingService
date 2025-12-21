@@ -59,7 +59,10 @@ const DatabaseViewer: React.FC = () => {
   } = useDropdownOptions();
 
   // Table configurations
-  const tableConfigs = useMemo(() => createTableConfigs(handleViewDetails), [handleViewDetails]);
+  const tableConfigs = useMemo(
+    () => createTableConfigs(handleViewDetails, buildings, users, desks),
+    [handleViewDetails, buildings, users, desks]
+  );
 
   // Get current table config
   const currentConfig = useMemo(

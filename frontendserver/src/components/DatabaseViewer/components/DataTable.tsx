@@ -51,7 +51,7 @@ export const DataTable: React.FC<DataTableProps> = ({
               canFilter={canFilter}
             />
           ) : (
-            <th key={col.key}>{col.label}</th>
+            <th key={col.key} style={{ textAlign: col.align || 'left' }}>{col.label}</th>
           );
         })}
         <th className="p-2">Actions</th>
@@ -73,7 +73,7 @@ export const DataTable: React.FC<DataTableProps> = ({
     return data.map((record) => (
       <tr key={config.getRecordId(record)}>
         {config.columns.map(col => (
-          <td key={col.key}>
+          <td key={col.key} style={{ textAlign: col.align || 'left' }}>
             {col.render
               ? col.render(record[col.key], record)
               : record[col.key]

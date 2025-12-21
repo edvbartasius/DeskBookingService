@@ -10,7 +10,7 @@ const AdminPage = () => {
         <>
             {isAdmin ? (
                 <div className="page-container">
-                    <Container fluid className="page-container">
+                    <Container className="page-container">
                         <h1>Admin Page</h1>
                         <Card className="mt-4">
                             <Card.Header>Database Viewer</Card.Header>
@@ -33,7 +33,6 @@ const AdminPage = () => {
 
                     </Card>
                 </Container>
-
             )}
         </>
     );
