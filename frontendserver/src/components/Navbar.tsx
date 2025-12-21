@@ -6,10 +6,12 @@ import Button from 'react-bootstrap/Button';
 import { Link } from 'react-router-dom';
 import LoginModal from './LoginModal.tsx';
 import RegisterModal from './RegisterModal.tsx';
+import { useUser } from '../contexts/UserContext.tsx';
 
 const Navbar = () => {
     const [showLogin, setShowLogin] = useState(false);
     const [showRegister, setShowRegister] = useState(false);
+    const { loggedInUser, isAdmin, clearUser } = useUser();
 
     const handleSwitchToRegister = () => {
         setShowLogin(false);
@@ -33,16 +35,34 @@ const Navbar = () => {
                     <BootstrapNavbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <Nav.Link as={Link} to="/desks">Seating</Nav.Link>
+                            {loggedInUser && 
+                                <Nav.Link as={Link} to="/profile">Profile</Nav.Link>
+                            }
+                            {isAdmin &&
+                                <Nav.Link as={Link} to="/admin">Admin Dashboard</Nav.Link>
+                            }
                         </Nav>
 
                         <div className="ms-auto d-flex flex-row align-items-center gap-2">
-                            <Button variant="outline-light" onClick={() => setShowLogin(true)}>
-                                Login
-                            </Button>
-                            <Button variant="light" onClick={() => setShowRegister(true)}>
-                                Register
-                            </Button>
+                            {loggedInUser ? (
+                                <>
+                                    <span className="text-light">Hello, {loggedInUser.name} {loggedInUser.surname}</span>
+                                    <Button variant="outline-light" onClick={clearUser}>
+                                        Logout
+                                    </Button>
+                                </>
+                            ) : (
+                                <>
+                                    <Button variant="outline-light" onClick={() => setShowLogin(true)}>
+                                        Login
+                                    </Button>
+                                    <Button variant="light" onClick={() => setShowRegister(true)}>
+                                        Register
+                                    </Button>
+                                </>
+                            )}
                         </div>
+
                     </BootstrapNavbar.Collapse>
                 </Container>
             </BootstrapNavbar>
