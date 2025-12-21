@@ -205,17 +205,6 @@ export const createTableConfigs = (
       { key: 'id', label: 'ID', type: 'number', disabled: true },
       { key: 'description', label: 'Description', type: 'textarea', required: false },
       { key: 'buildingId', label: 'Building', type: 'number', required: true },
-      {
-        key: 'status',
-        label: 'Status',
-        type: 'select',
-        required: true,
-        options: [
-          { value: DeskStatus.Available, label: 'Available' },
-          { value: DeskStatus.Booked, label: 'Booked' },
-          { value: DeskStatus.Unavailable, label: 'Unavailable' }
-        ]
-      }
     ],
     detailView: {
       title: (desk: Desk) => `Reservations for Desk ${desk.id}${desk.description ? ' - ' + desk.description : ''}`,
@@ -288,8 +277,6 @@ export const createTableConfigs = (
       { key: 'userId', label: 'User', type: 'text', required: true },
       { key: 'deskId', label: 'Desk', type: 'number', required: true },
       { key: 'reservationDate', label: 'Reservation Date', type: 'date', required: true },
-      { key: 'startDate', label: 'Start Time', type: 'time', required: true },
-      { key: 'endDate', label: 'End Time', type: 'time', required: true }
     ],
     columns: [
       { key: 'id', label: 'ID' },
