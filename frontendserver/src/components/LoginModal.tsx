@@ -20,8 +20,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
         setErrorMessage("");
         try {
             const loginData = {
-                email,
-                password
+                Email: email,
+                Password: password
             };
             console.log("Submitting login data:", loginData);
             const response = await api.post("users/login-user", loginData);
@@ -41,13 +41,19 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
                 onHide(); // Hide modal on successfull login
             } else {
                 // Display error message
-                setErrorMessage(response.data || "Login failed");
+                const errorMsg = typeof response.data === 'string'
+                    ? response.data
+                    : response.data?.title || response.data?.message || "Login failed";
+                setErrorMessage(errorMsg);
                 console.log("Login failed:", response.data);
             }
         } catch (error: any)
         {
             console.error("Login failed:", error);
-            const message = error.response?.data || error.message || "An error occurred during login";
+            const errorData = error.response?.data;
+            const message = typeof errorData === 'string'
+                ? errorData
+                : errorData?.title || errorData?.message || error.message || "An error occurred during login";
             setErrorMessage(message);
         }
     };

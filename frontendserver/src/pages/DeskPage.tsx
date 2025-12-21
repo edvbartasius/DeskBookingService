@@ -13,6 +13,14 @@ import { BuildingSelector } from "../components/BuildingSelector/index.tsx";
 import { DeskListView } from "../components/DeskListView/index.tsx";
 import { ReservationConfirmModal } from "../components/ReservationConfirmModal/index.tsx";
 
+// Helper function to format Date to YYYY-MM-DD in local timezone
+const formatDateLocal = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const DeskPage = () => {
   const { loggedInUser } = useUser();
   const [buildings, setBuildings] = useState<Building[]>([]);
@@ -65,7 +73,7 @@ const DeskPage = () => {
     const fetchFloorPlan = async () => {
       setLoadingDesks(true);
       const buildingId = selectedBuilding.id;
-      const dateStr = selectedDate.toISOString().split('T')[0];
+      const dateStr = formatDateLocal(selectedDate);
       const userId = loggedInUser?.id;
       const url = `buildings/get-floor-plan/${buildingId}/${dateStr}/${userId}`;
 
@@ -100,11 +108,11 @@ const DeskPage = () => {
     setReservationError(null);
 
     try {
-      // Format booking request
+      // Format booking request - use local date formatting to avoid timezone shifts
       const bookingRequest = {
         userId: loggedInUser?.id,
         deskId: deskToReserve.id,
-        reservationDates: selectedDates.map(date => date.toISOString().split('T')[0])
+        reservationDates: selectedDates.map(formatDateLocal)
       };
 
       console.log("Booking request:", bookingRequest);
@@ -118,7 +126,7 @@ const DeskPage = () => {
         // Refresh floor plan to update desk availability for current selected date
         if (selectedBuilding && selectedDate) {
           const buildingId = selectedBuilding.id;
-          const dateStr = selectedDate.toISOString().split('T')[0];
+          const dateStr = formatDateLocal(selectedDate);
           const userId = loggedInUser?.id;
           const url = `buildings/get-floor-plan/${buildingId}/${dateStr}/${userId}`;
 
@@ -156,7 +164,7 @@ const DeskPage = () => {
       let response;
       if (cancelType === 'single') {
         // Cancel single day
-        const dateStr = selectedDate?.toISOString().split('T')[0];
+        const dateStr = selectedDate ? formatDateLocal(selectedDate) : '';
         const url = `/reservations/my-reservations/cancel-single-day/${desk.id}/${dateStr}/${loggedInUser?.id}`;
         response = await api.patch(url);
       } else {
@@ -167,7 +175,7 @@ const DeskPage = () => {
       // After successful cancellation, refresh the floor plan
       if (response.status === 200 && selectedBuilding && selectedDate) {
         const buildingId = selectedBuilding.id;
-        const dateStr = selectedDate.toISOString().split('T')[0];
+        const dateStr = formatDateLocal(selectedDate);
         const userId = loggedInUser?.id;
         const url = `buildings/get-floor-plan/${buildingId}/${dateStr}/${userId}`;
         const refreshResponse = await api.get(url);

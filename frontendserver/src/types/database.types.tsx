@@ -28,6 +28,8 @@ export interface User {
 export interface Building {
     id: number;
     name: string;
+    floorPlanWidth: number;
+    floorPlanHeight: number;
 }
 
 export interface Desk {
@@ -36,6 +38,11 @@ export interface Desk {
     status: DeskStatus;
     buildingId: number;
     buildingName?: string | null;
+    positionX: number;
+    positionY: number;
+    type: number; // DeskType enum
+    isInMaintenance: boolean;
+    maintenanceReason?: string | null;
 }
 
 export interface Reservation {

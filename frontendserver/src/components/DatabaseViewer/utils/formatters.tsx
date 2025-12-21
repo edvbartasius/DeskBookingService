@@ -1,6 +1,7 @@
 import React, { JSX } from 'react';
 import { Badge } from 'react-bootstrap';
 import { UserRole, DeskStatus } from '../../../types/database.types.tsx';
+import { DeskType } from '../../../types/booking.types.tsx';
 
 export const formatUserRole = (role: UserRole): JSX.Element => {
   return role === UserRole.Admin
@@ -19,6 +20,18 @@ export const formatDeskStatus = (status: DeskStatus): JSX.Element => {
     default:
       return <Badge bg="secondary">Unknown</Badge>;
   }
+};
+
+export const formatDeskType = (type: DeskType): JSX.Element => {
+  return type === DeskType.ConferenceRoom
+    ? <Badge bg="info">Conference Room</Badge>
+    : <Badge bg="secondary">Regular Desk</Badge>;
+};
+
+export const formatBoolean = (value: boolean): JSX.Element => {
+  return value
+    ? <Badge bg="warning">Yes</Badge>
+    : <Badge bg="success">No</Badge>;
 };
 
 export const formatDate = (value: string): string => {

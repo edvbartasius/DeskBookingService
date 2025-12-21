@@ -54,8 +54,12 @@ export const useDeskAvailability = (deskId: number | undefined): UseDeskAvailabi
           console.log(`Fetched ${dateStrings.length} booked dates for desk ${deskId}`);
           console.log(`bookedDates: ${dateStrings}`);
 
-          // Convert date strings to Date objects
-          const dates = dateStrings.map((dateStr: string) => new Date(dateStr));
+          // Convert date strings to Date objects in local timezone
+          // Parse "2025-12-25" as Dec 25 at midnight local time (not UTC)
+          const dates = dateStrings.map((dateStr: string) => {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            return new Date(year, month - 1, day);
+          });
           setBookedDates(dates);
         }
       } catch (err) {

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "W7O9ge2z5G4=",
+  "dgSpecHash": "5op7qcjWJ7I=",
   "success": true,
   "projectFilePath": "C:\\Users\\edvba\\Code\\DeskBookingService\\BackendServer.Tests\\BackendServer.Tests.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,9 @@
     "C:\\Users\\edvba\\.nuget\\packages\\coverlet.collector\\6.0.4\\coverlet.collector.6.0.4.nupkg.sha512",
     "C:\\Users\\edvba\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",
     "C:\\Users\\edvba\\.nuget\\packages\\fluentassertions\\8.8.0\\fluentassertions.8.8.0.nupkg.sha512",
+    "C:\\Users\\edvba\\.nuget\\packages\\fluentvalidation\\12.1.1\\fluentvalidation.12.1.1.nupkg.sha512",
+    "C:\\Users\\edvba\\.nuget\\packages\\fluentvalidation.aspnetcore\\11.3.1\\fluentvalidation.aspnetcore.11.3.1.nupkg.sha512",
+    "C:\\Users\\edvba\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.11.0\\fluentvalidation.dependencyinjectionextensions.11.11.0.nupkg.sha512",
     "C:\\Users\\edvba\\.nuget\\packages\\mapster\\7.4.0\\mapster.7.4.0.nupkg.sha512",
     "C:\\Users\\edvba\\.nuget\\packages\\mapster.core\\1.2.1\\mapster.core.1.2.1.nupkg.sha512",
     "C:\\Users\\edvba\\.nuget\\packages\\mapster.dependencyinjection\\1.0.1\\mapster.dependencyinjection.1.0.1.nupkg.sha512",
