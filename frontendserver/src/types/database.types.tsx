@@ -45,9 +45,19 @@ export interface Desk {
     maintenanceReason?: string | null;
 }
 
+export enum ReservationStatus {
+    Active = 0,
+    Completed = 1,
+    Cancelled = 2
+}
+
 export interface Reservation {
     id: number;
     userId: string;
     deskId: number;
     reservationDate: string; // ISO date string
+    status: ReservationStatus;
+    createdAt: string; // ISO date string
+    canceledAt?: string | null; // ISO date string
+    reservationGroupId?: string | null; // GUID for grouping reservations made together
 }

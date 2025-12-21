@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import {
   FloorPlanDto,
-  DeskDto
+  DeskDto,
+  FloorPlanCanvas
 } from "../components/FloorPlan/index.tsx";
 import { Container, Row, Col, Card } from "react-bootstrap";
 import { DateSelector, useDeskAvailability, useOfficeClosedDates } from "../components/DateSelector/index.tsx";
@@ -53,7 +54,7 @@ const DeskPage = () => {
         if (response.status === 200){
           setBuildings(response.data);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch buildings:', error);
       } finally {
         setLoading(false);
@@ -82,7 +83,7 @@ const DeskPage = () => {
         if (response.status === 200){
           setFloorPlan(response.data);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to fetch floor plan:', error);
       } finally {
         setLoadingDesks(false);
@@ -136,9 +137,11 @@ const DeskPage = () => {
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to book desk:', error);
-      setReservationError('Failed to reserve the desk. Please try again.');
+      // Extract error message from backend response
+      const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Failed to reserve the desk. Please try again.';
+      setReservationError(errorMessage);
     } finally {
       setIsReservationLoading(false);
     }
@@ -168,7 +171,8 @@ const DeskPage = () => {
         const url = `/reservations/my-reservations/cancel-single-day/${desk.id}/${dateStr}/${loggedInUser?.id}`;
         response = await api.patch(url);
       } else {
-        const url = `/reservations/my-reservations/cancel-date-range/${desk.id}/${loggedInUser?.id}`;
+        const dateStr = selectedDate ? formatDateLocal(selectedDate) : '';
+        const url = `/reservations/my-reservations/cancel-booking-group/${desk.id}/${dateStr}/${loggedInUser?.id}`;
         response = await api.patch(url);
       }
 
@@ -183,8 +187,11 @@ const DeskPage = () => {
           setFloorPlan(refreshResponse.data);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to cancel reservation:', error);
+      // Extract error message from backend response
+      const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Failed to cancel reservation. Please try again.';
+      alert(`Error: ${errorMessage}`);
     }
   };
 
@@ -214,17 +221,12 @@ const DeskPage = () => {
         </Col>
       </Row>
 
-      {/* Main Content */}
+      {/* Date Selector - Full Width */}
       {selectedBuilding && (
-        <Row>
-          {/* Floor Plan Canvas */}
-          <Col lg={7} className="mb-3">
-            <Card style={{ height: '70vh' }}>
-              <Card.Header>
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h5 className="mb-0">Select a Desk</h5>
-                </div>
-
+        <Row className="mb-3">
+          <Col>
+            <Card>
+              <Card.Body>
                 <DateSelector
                   selectedDate={selectedDate}
                   onSelectedDateChange={setSelectedDate}
@@ -232,18 +234,61 @@ const DeskPage = () => {
                   bookedDates={[]}
                   disabled={loading || loadingDesks || loadingClosedDates}
                 />
-            </Card.Header>
-            <Card.Body className="p-3" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              <DeskListView
-                floorPlan={floorPlan}
-                onReserveClick={handleReserveClick}
-                onCancelClick={handleCancelReservation}
-                loading={loadingDesks}
-              />
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      )}
+
+      {/* Main Content - Floor Plan and Desk List Side by Side */}
+      {selectedBuilding && (
+        <Row>
+          {/* Floor Plan Canvas - Left Side */}
+          <Col lg={7} className="mb-3">
+            <Card style={{ height: '70vh' }}>
+              <Card.Header>
+                <h5 className="mb-0">Floor Plan</h5>
+              </Card.Header>
+              <Card.Body className="p-0" style={{ height: 'calc(70vh - 60px)' }}>
+                {floorPlan ? (
+                  <FloorPlanCanvas
+                    floorPlan={floorPlan}
+                    onDeskClick={handleReserveClick}
+                    onCancelClick={handleCancelReservation}
+                    selectedDeskId={deskToReserve?.id}
+                  />
+                ) : (
+                  <div className="d-flex justify-content-center align-items-center h-100">
+                    {loadingDesks ? (
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading floor plan...</span>
+                      </div>
+                    ) : (
+                      <p className="text-muted">Select a date to view the floor plan</p>
+                    )}
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Desk List View - Right Side */}
+          <Col lg={5} className="mb-3">
+            <Card style={{ height: '70vh' }}>
+              <Card.Header>
+                <h5 className="mb-0">Available Desks</h5>
+              </Card.Header>
+              <Card.Body className="p-3" style={{ maxHeight: 'calc(70vh - 60px)', overflowY: 'auto' }}>
+                <DeskListView
+                  floorPlan={floorPlan}
+                  onReserveClick={handleReserveClick}
+                  onCancelClick={handleCancelReservation}
+                  loading={loadingDesks}
+                />
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
       )}
 
       {/* Reservation Confirmation Modal */}

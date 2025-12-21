@@ -16,7 +16,7 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, onHover, isSelected,
   // All desks are the same size - one grid cell
   const width = cellSize;
   const height = cellSize;
-  const colors = getDeskColor(desk.status);
+  const colors = getDeskColor(desk.status, desk.isReservedByCaller);
 
   // Convert grid coordinates to pixel coordinates
   const pixelPosition = getDeskPixelPosition(desk.positionX, desk.positionY);
@@ -116,7 +116,7 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, onHover, isSelected,
         </rect>
       )}
 
-      {/* Desk ID/Label */}
+      {/* Desk ID/Label
       <text
         x={width / 2}
         y={height / 2}
@@ -132,7 +132,7 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, onHover, isSelected,
         }}
       >
         {desk.description || `D${desk.id}`}
-      </text>
+      </text> */}
     </g>
   );
 };

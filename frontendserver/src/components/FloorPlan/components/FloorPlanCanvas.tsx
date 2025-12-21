@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import DeskTile from './DeskTile.tsx';
 import DeskHoverCard from './DeskHoverCard.tsx';
-import { DeskDto, FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
+import { DeskDto, DeskStatus, FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
 import { useFloorPlanZoom } from '../hooks/useFloorPlanZoom.ts';
 import { useFloorPlanPan } from '../hooks/useFloorPlanPan.ts';
 import { useContainerSize } from '../hooks/useContainerSize.ts';
@@ -18,7 +18,8 @@ import {
 const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   floorPlan,
   onDeskClick,
-  selectedDeskId
+  selectedDeskId,
+  onCancelClick
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -29,7 +30,7 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     : { width: 0, height: 0 };
 
   const [viewBox, setViewBox] = useState<ViewBox>({ x: 0, y: 0, width: 0, height: 0 });
-  const [hoveredDesk, setHoveredDesk] = useState<DeskDto | null>(null);
+  const [clickedDesk, setClickedDesk] = useState<DeskDto | null>(null);
 
   // Custom hooks
   const containerSize = useContainerSize(containerRef);
@@ -281,15 +282,36 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
           <DeskTile
             key={desk.id}
             desk={desk}
-            onClick={() => onDeskClick?.(desk)}
-            onHover={setHoveredDesk}
-            isSelected={selectedDeskId === desk.id}
+            onClick={() => {
+              // Toggle clicked desk: if same desk is clicked, deselect it
+              if (clickedDesk?.id === desk.id) {
+                setClickedDesk(null);
+              } else {
+                setClickedDesk(desk);
+              }
+            }}
+            onHover={() => {}} // Disable hover functionality
+            isSelected={clickedDesk?.id === desk.id}
             cellSize={GRID_CELL_SIZE}
           />
         ))}
 
-        {/* Hover card - rendered to the side of hovered desk */}
-        {hoveredDesk && <DeskHoverCard desk={hoveredDesk} cellSize={GRID_CELL_SIZE} />}
+        {/* Info card - rendered as popup when desk is clicked */}
+        {clickedDesk && (
+          <DeskHoverCard
+            desk={clickedDesk}
+            cellSize={GRID_CELL_SIZE}
+            onReserveClick={(desk) => {
+              onDeskClick?.(desk);
+              setClickedDesk(null); // Close the card after action
+            }}
+            onCancelClick={(desk, cancelType) => {
+              onCancelClick?.(desk, cancelType);
+              setClickedDesk(null); // Close the card after action
+            }}
+            onClose={() => setClickedDesk(null)}
+          />
+        )}
       </svg>
     </div>
   );

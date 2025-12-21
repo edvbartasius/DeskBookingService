@@ -2,14 +2,15 @@ import { DeskType, DeskStatus, DeskColors } from '../types/floorPlan.types.ts';
 import { DESK_COLORS } from '../config/constants.ts';
 
 /**
- * Get color scheme based on desk status
+ * Get color scheme based on desk status and reservation ownership
  */
-export const getDeskColor = (status?: DeskStatus): DeskColors => {
+export const getDeskColor = (status?: DeskStatus, isReservedByCaller?: boolean): DeskColors => {
   switch (status) {
     case DeskStatus.Available:
       return DESK_COLORS.available;
     case DeskStatus.Booked:
-      return DESK_COLORS.booked;
+      // Use different color if reserved by current user
+      return isReservedByCaller ? DESK_COLORS.bookedByUser : DESK_COLORS.booked;
     case DeskStatus.Unavailable:
       return DESK_COLORS.unavailable;
     default:
@@ -50,12 +51,12 @@ export const getDeskStatusLabel = (status?: DeskStatus): string => {
 /**
  * Get Bootstrap badge variant for desk status
  */
-export const getStatusBadgeVariant = (status?: DeskStatus): string => {
+export const getStatusBadgeVariant = (status?: DeskStatus, isReservedByCaller?: boolean): string => {
   switch (status) {
     case DeskStatus.Available:
       return 'success';
     case DeskStatus.Booked:
-      return 'danger';
+      return isReservedByCaller ? 'primary' : 'danger';
     case DeskStatus.Unavailable:
       return 'secondary';
     default:

@@ -1,6 +1,6 @@
 import React, { JSX } from 'react';
-import { Badge } from 'react-bootstrap';
-import { UserRole, DeskStatus } from '../../../types/database.types.tsx';
+import { Badge, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { UserRole, DeskStatus, ReservationStatus } from '../../../types/database.types.tsx';
 import { DeskType } from '../../../types/booking.types.tsx';
 
 export const formatUserRole = (role: UserRole): JSX.Element => {
@@ -40,4 +40,35 @@ export const formatDate = (value: string): string => {
 
 export const formatNullableText = (value: string | null): JSX.Element | string => {
   return value || <em className="text-muted">No description</em>;
+};
+
+export const formatReservationStatus = (status: ReservationStatus): JSX.Element => {
+  switch (status) {
+    case ReservationStatus.Active:
+      return <Badge bg="success">Active</Badge>;
+    case ReservationStatus.Completed:
+      return <Badge bg="secondary">Completed</Badge>;
+    case ReservationStatus.Cancelled:
+      return <Badge bg="danger">Cancelled</Badge>;
+    default:
+      return <Badge bg="secondary">Unknown</Badge>;
+  }
+};
+
+export const formatGuid = (guid: string | null | undefined): JSX.Element => {
+  if (!guid) {
+    return <em className="text-muted">None</em>;
+  }
+
+  // Shorten GUID for display (first 8 chars)
+  const shortGuid = guid.substring(0, 8);
+
+  return (
+    <OverlayTrigger
+      placement="top"
+      overlay={<Tooltip>{guid}</Tooltip>}
+    >
+      <code style={{ cursor: 'help' }}>{shortGuid}...</code>
+    </OverlayTrigger>
+  );
 };

@@ -8,13 +8,6 @@ const AdminPage = () => {
     const { isAdmin } = useUser(); // Logged in user context for limiting accesibility to page
     const cards: CardConfig[] = [
         {
-            id: 0,
-            title: "Desk Management",
-            description: "Manage desks registered in the system",
-            allowExpand: false,
-            content: undefined
-        },
-        {
             id: 1,
             title: "Database Viewer",
             description: "View and manage database records",
@@ -43,7 +36,6 @@ const AdminPage = () => {
 
             )}
         </>
-
     );
 }
 

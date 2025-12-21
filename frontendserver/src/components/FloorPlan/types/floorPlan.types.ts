@@ -37,6 +37,7 @@ export interface FloorPlanCanvasProps {
   selectedDate?: Date;
   selectedTime?: string;
   onDeskClick?: (desk: DeskDto) => void;
+  onCancelClick?: (desk: DeskDto, cancelType: 'single' | 'range') => void;
   selectedDeskId?: number;
   cellSize?: number;
 }

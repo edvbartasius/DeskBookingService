@@ -42,7 +42,7 @@ export const DeskCard: React.FC<DeskCardProps> = ({
         <Card.Body>
           <div className="d-flex justify-content-between align-items-start mb-2">
             <h5 className="mb-0">{desk.description}</h5>
-            <Badge bg={getStatusBadgeVariant(desk.status)}>
+            <Badge bg={getStatusBadgeVariant(desk.status, desk.isReservedByCaller)}>
               {getDeskStatusLabel(desk.status)}
             </Badge>
           </div>

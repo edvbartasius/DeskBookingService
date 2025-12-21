@@ -29,6 +29,11 @@ export const DESK_COLORS = {
     stroke: '#D32F2F',
     hover: '#EF5350'
   },
+  bookedByUser: {
+    fill: '#2196F3',
+    stroke: '#1565C0',
+    hover: '#42A5F5'
+  },
   unavailable: {
     fill: '#9E9E9E',
     stroke: '#616161',
