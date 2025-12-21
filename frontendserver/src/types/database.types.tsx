@@ -28,6 +28,8 @@ export interface User {
 export interface Building {
     id: number;
     name: string;
+    floorPlanWidth: number;
+    floorPlanHeight: number;
 }
 
 export interface Desk {
@@ -36,6 +38,17 @@ export interface Desk {
     status: DeskStatus;
     buildingId: number;
     buildingName?: string | null;
+    positionX: number;
+    positionY: number;
+    type: number; // DeskType enum
+    isInMaintenance: boolean;
+    maintenanceReason?: string | null;
+}
+
+export enum ReservationStatus {
+    Active = 0,
+    Completed = 1,
+    Cancelled = 2
 }
 
 export interface Reservation {
@@ -43,6 +56,8 @@ export interface Reservation {
     userId: string;
     deskId: number;
     reservationDate: string; // ISO date string
-    startDate: string; // time string
-    endDate: string; // time string
+    status: ReservationStatus;
+    createdAt: string; // ISO date string
+    canceledAt?: string | null; // ISO date string
+    reservationGroupId?: string | null; // GUID for grouping reservations made together
 }

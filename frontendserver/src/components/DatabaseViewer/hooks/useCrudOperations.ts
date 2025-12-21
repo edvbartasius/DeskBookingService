@@ -2,7 +2,7 @@ import { useState } from 'react';
 import api from '../../../services/api.ts';
 import { TableName, User, Building, Desk } from '../../../types/database.types.tsx';
 import { FormField } from '../config/tableConfigs.tsx';
-import { validateFormData } from '../utils/validators.ts';
+// import { validateFormData } from '../utils/validators.ts';
 
 export const useCrudOperations = () => {
   const [showCrudModal, setShowCrudModal] = useState<boolean>(false);
@@ -122,30 +122,52 @@ export const useCrudOperations = () => {
   const handleCrudSubmit = async (targetTable: TableName, onSuccess: () => void) => {
     setCrudError(null);
 
-    // Frontend validation before API call (skip for delete operations)
-    if (crudMode !== 'delete') {
-      const validationError = validateFormData(targetTable, crudFormData);
-      if (validationError) {
-        setCrudError(validationError);
-        return; // Stop submission if validation fails
-      }
-    }
-
     try {
+      // Transform form data before sending
+      const transformedData = { ...crudFormData };
+
+      // Convert string boolean values to actual booleans
+      if (transformedData.isInMaintenance !== undefined) {
+        transformedData.isInMaintenance = transformedData.isInMaintenance === 'true' || transformedData.isInMaintenance === true;
+      }
+
+      // Convert numeric strings to numbers for number fields
+      if (transformedData.positionX !== undefined && transformedData.positionX !== '') {
+        transformedData.positionX = parseFloat(transformedData.positionX);
+      }
+      if (transformedData.positionY !== undefined && transformedData.positionY !== '') {
+        transformedData.positionY = parseFloat(transformedData.positionY);
+      }
+      if (transformedData.floorPlanWidth !== undefined && transformedData.floorPlanWidth !== '') {
+        transformedData.floorPlanWidth = parseInt(transformedData.floorPlanWidth);
+      }
+      if (transformedData.floorPlanHeight !== undefined && transformedData.floorPlanHeight !== '') {
+        transformedData.floorPlanHeight = parseInt(transformedData.floorPlanHeight);
+      }
+      if (transformedData.type !== undefined && transformedData.type !== '') {
+        transformedData.type = parseInt(transformedData.type);
+      }
+      if (transformedData.role !== undefined && transformedData.role !== '') {
+        transformedData.role = parseInt(transformedData.role);
+      }
+
       let response;
       switch (crudMode) {
         case 'add':
-          response = await api.post(`admin/${targetTable}`, crudFormData);
+          console.log(`Calling: ${targetTable}/add`, transformedData)
+          response = await api.post(`${targetTable}/add`, transformedData);
           console.log('Add response:', response);
           break;
         case 'edit':
-          const editId = crudFormData.id;
-          response = await api.put(`admin/${targetTable}/${editId}`, crudFormData);
+          const editId = transformedData.id;
+          console.log(`Calling: ${targetTable}/update/${editId}`, transformedData)
+          response = await api.put(`${targetTable}/update/${editId}`, transformedData);
           console.log('Edit response:', response);
           break;
         case 'delete':
-          const deleteId = crudFormData.id;
-          response = await api.delete(`admin/${targetTable}/${deleteId}`);
+          const deleteId = transformedData.id;
+          console.log(`Calling: ${targetTable}/delete/${deleteId}`)
+          response = await api.delete(`${targetTable}/delete/${deleteId}`);
           console.log('Delete response:', response);
           break;
       }

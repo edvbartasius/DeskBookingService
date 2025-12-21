@@ -1,8 +1,9 @@
 import React, { JSX } from 'react';
 import { Button } from 'react-bootstrap';
 import { DatabaseService } from '../../../services/database.service.ts';
-import { TableName, User, Building, Desk, Reservation, UserRole, DeskStatus } from '../../../types/database.types.tsx';
-import { formatUserRole, formatDeskStatus, formatDate, formatNullableText } from '../utils/formatters.tsx';
+import { TableName, User, Building, Desk, Reservation, UserRole, DeskStatus, ReservationStatus } from '../../../types/database.types.tsx';
+import { DeskType } from '../../../types/booking.types.tsx';
+import { formatUserRole, formatDeskStatus, formatDeskType, formatBoolean, formatDate, formatNullableText, formatReservationStatus, formatGuid } from '../utils/formatters.tsx';
 
 export interface ColumnConfig {
   key: string;
@@ -76,8 +77,16 @@ export const createTableConfigs = (
           label: 'Date',
           render: (value: string) => formatDate(value)
         },
-        { key: 'startDate', label: 'Start Time' },
-        { key: 'endDate', label: 'End Time' }
+        {
+          key: 'status',
+          label: 'Status',
+          render: (value: ReservationStatus) => formatReservationStatus(value)
+        },
+        {
+          key: 'reservationGroupId',
+          label: 'Group ID',
+          render: (value: string | null) => formatGuid(value)
+        }
       ]
     },
     columns: [
@@ -112,8 +121,16 @@ export const createTableConfigs = (
                     label: 'Date',
                     render: (value: string) => formatDate(value)
                   },
-                  { key: 'startDate', label: 'Start Time' },
-                  { key: 'endDate', label: 'End Time' }
+                  {
+                    key: 'status',
+                    label: 'Status',
+                    render: (value: ReservationStatus) => formatReservationStatus(value)
+                  },
+                  {
+                    key: 'reservationGroupId',
+                    label: 'Group ID',
+                    render: (value: string | null) => formatGuid(value)
+                  }
                 ]
               };
               handleViewDetails(user, config, 'reservations' as TableName);
@@ -134,7 +151,9 @@ export const createTableConfigs = (
     getRecordId: (building: Building) => building.id,
     formFields: [
       { key: 'id', label: 'ID', type: 'number', disabled: true },
-      { key: 'name', label: 'Building Name', type: 'text', required: true }
+      { key: 'name', label: 'Building Name', type: 'text', required: true },
+      { key: 'floorPlanWidth', label: 'Floor Plan Width', type: 'number', required: true },
+      { key: 'floorPlanHeight', label: 'Floor Plan Height', type: 'number', required: true }
     ],
     detailView: {
       title: (building: Building) => `Desks in ${building.name}`,
@@ -159,6 +178,8 @@ export const createTableConfigs = (
     columns: [
       { key: 'id', label: 'ID' },
       { key: 'name', label: 'Name' },
+      { key: 'floorPlanWidth', label: 'Width' },
+      { key: 'floorPlanHeight', label: 'Height' },
       {
         key: 'desks',
         label: 'Desks',
@@ -207,17 +228,29 @@ export const createTableConfigs = (
       { key: 'id', label: 'ID', type: 'number', disabled: true },
       { key: 'description', label: 'Description', type: 'textarea', required: false },
       { key: 'buildingId', label: 'Building', type: 'number', required: true },
+      { key: 'positionX', label: 'Position X', type: 'number', required: false },
+      { key: 'positionY', label: 'Position Y', type: 'number', required: false },
       {
-        key: 'status',
-        label: 'Status',
+        key: 'type',
+        label: 'Desk Type',
         type: 'select',
         required: true,
         options: [
-          { value: DeskStatus.Available, label: 'Available' },
-          { value: DeskStatus.Booked, label: 'Booked' },
-          { value: DeskStatus.Unavailable, label: 'Unavailable' }
+          { value: 0, label: 'Regular Desk' },
+          { value: 1, label: 'Conference Room' }
         ]
-      }
+      },
+      {
+        key: 'isInMaintenance',
+        label: 'In Maintenance',
+        type: 'select',
+        required: true,
+        options: [
+          { value: 'false', label: 'No' },
+          { value: 'true', label: 'Yes' }
+        ]
+      },
+      { key: 'maintenanceReason', label: 'Maintenance Reason', type: 'textarea', required: false }
     ],
     detailView: {
       title: (desk: Desk) => `Reservations for Desk ${desk.id}${desk.description ? ' - ' + desk.description : ''}`,
@@ -233,8 +266,16 @@ export const createTableConfigs = (
           label: 'Date',
           render: (value: string) => formatDate(value)
         },
-        { key: 'startDate', label: 'Start Time' },
-        { key: 'endDate', label: 'End Time' }
+        {
+          key: 'status',
+          label: 'Status',
+          render: (value: ReservationStatus) => formatReservationStatus(value)
+        },
+        {
+          key: 'reservationGroupId',
+          label: 'Group ID',
+          render: (value: string | null) => formatGuid(value)
+        }
       ]
     },
     columns: [
@@ -244,7 +285,19 @@ export const createTableConfigs = (
         label: 'Description',
         render: (value: string | null) => formatNullableText(value)
       },
-      { key: 'buildingName', label: 'Building' },
+      { key: 'buildingId', label: 'Building' },
+      { key: 'positionX', label: 'X' },
+      { key: 'positionY', label: 'Y' },
+      {
+        key: 'type',
+        label: 'Type',
+        render: (value: any) => formatDeskType(value as DeskType)
+      },
+      {
+        key: 'isInMaintenance',
+        label: 'Maintenance',
+        render: (value: boolean) => formatBoolean(value)
+      },
       {
         key: 'reservations',
         label: 'Reservations',
@@ -267,8 +320,16 @@ export const createTableConfigs = (
                     label: 'Date',
                     render: (value: string) => formatDate(value)
                   },
-                  { key: 'startDate', label: 'Start Time' },
-                  { key: 'endDate', label: 'End Time' }
+                  {
+                    key: 'status',
+                    label: 'Status',
+                    render: (value: ReservationStatus) => formatReservationStatus(value)
+                  },
+                  {
+                    key: 'reservationGroupId',
+                    label: 'Group ID',
+                    render: (value: string | null) => formatGuid(value)
+                  }
                 ]
               };
               handleViewDetails(desk, config, 'reservations' as TableName);
@@ -292,8 +353,17 @@ export const createTableConfigs = (
       { key: 'userId', label: 'User', type: 'text', required: true },
       { key: 'deskId', label: 'Desk', type: 'number', required: true },
       { key: 'reservationDate', label: 'Reservation Date', type: 'date', required: true },
-      { key: 'startDate', label: 'Start Time', type: 'time', required: true },
-      { key: 'endDate', label: 'End Time', type: 'time', required: true }
+      {
+        key: 'status',
+        label: 'Status',
+        type: 'select',
+        required: true,
+        options: [
+          { value: ReservationStatus.Active, label: 'Active' },
+          { value: ReservationStatus.Completed, label: 'Completed' },
+          { value: ReservationStatus.Cancelled, label: 'Cancelled' }
+        ]
+      }
     ],
     columns: [
       { key: 'id', label: 'ID' },
@@ -304,8 +374,22 @@ export const createTableConfigs = (
         label: 'Date',
         render: (value: string) => formatDate(value)
       },
-      { key: 'startDate', label: 'Start Time' },
-      { key: 'endDate', label: 'End Time' }
+      { key: 'reservationGroupId', label: "Reservation Group", render: (value: string | null) => formatGuid(value)},
+      {
+        key: 'status',
+        label: 'Status',
+        render: (value: ReservationStatus) => formatReservationStatus(value)
+      },
+      {
+        key: 'createdAt',
+        label: 'Created At',
+        render: (value: string) => formatDate(value)
+      },
+      {
+        key: 'canceledAt',
+        label: 'Canceled At',
+        render: (value: string | null) => value ? formatDate(value) : <em className="text-muted">N/A</em>
+      }
     ]
   }
 ];

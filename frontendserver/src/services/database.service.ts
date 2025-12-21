@@ -9,7 +9,7 @@ export class DatabaseService {
    * Fetch all users from the database
    */
   static async getUsers(): Promise<User[]> {
-    const response = await api.get('admin/get-users');
+    const response = await api.get('users/get-users');
     return response.data;
   }
 
@@ -17,7 +17,7 @@ export class DatabaseService {
    * Fetch all buildings from the database
    */
   static async getBuildings(): Promise<Building[]> {
-    const response = await api.get<Building[]>('admin/get-buildings');
+    const response = await api.get<Building[]>('buildings/get-buildings');
     return response.data;
   }
 
@@ -25,7 +25,7 @@ export class DatabaseService {
    * Fetch all desks from the database
    */
   static async getDesks(): Promise<Desk[]> {
-    const response = await api.get<Desk[]>('admin/get-desks');
+    const response = await api.get<Desk[]>('desks/get-desks');
     return response.data;
   }
 
@@ -33,7 +33,7 @@ export class DatabaseService {
    * Fetch all reservations from the database
    */
   static async getReservations(): Promise<Reservation[]> {
-    const response = await api.get<Reservation[]>('admin/get-reservations');
+    const response = await api.get<Reservation[]>('reservations/');
     return response.data;
   }
 }

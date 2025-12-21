@@ -12,8 +12,6 @@ import { DetailView } from './components/DetailView.tsx';
 import { CrudModal } from './components/CrudModal.tsx';
 import { Pagination } from './components/Pagination.tsx';
 
-// TODO:
-// After checking details (like user reservations) and selecting different table, details still shown
 const DatabaseViewer: React.FC = () => {
   // Custom hooks
   const {
@@ -158,7 +156,10 @@ const DatabaseViewer: React.FC = () => {
         tableConfigs={tableConfigs}
         selectedTable={selectedTable}
         currentConfig={currentConfig}
-        onSelectTable={(table) => selectTable(table, tableConfigs)}
+        onSelectTable={(table) => {
+          handleCloseDetailView();
+          selectTable(table, tableConfigs);
+        }}
         onAdd={handleAdd}
       />
 

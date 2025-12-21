@@ -1,7 +1,9 @@
 using DeskBookingService.DatabaseSeeder;
 using DeskBookingService.Configurations;
-using Microsoft.Extensions.DependencyInjection;
+using DeskBookingService.Services;
+using DeskBookingService.Services.Validators;
 using Mapster;
+using FluentValidation;
 
 // Load .env file
 DotNetEnv.Env.Load();
@@ -11,6 +13,10 @@ var builder = WebApplication.CreateBuilder(args);
 // Configure Mapster
 MapsterConfiguration.Configure();
 
+// Configure options
+builder.Services.Configure<BackgroundJobOptions>(
+    builder.Configuration.GetSection(BackgroundJobOptions.SectionName));
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -19,7 +25,36 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 builder.Services.AddDbContext<AppDbContext>();
+
+// Register application services
+builder.Services.AddScoped<DeskAvailabilityService>();
+builder.Services.AddScoped<ReservationValidationService>();
+
+// Register background services (conditionally based on configuration)
+var backgroundJobOptions = builder.Configuration
+    .GetSection(BackgroundJobOptions.SectionName)
+    .Get<BackgroundJobOptions>() ?? new BackgroundJobOptions();
+
+if (backgroundJobOptions.EnableReservationCleanup)
+{
+    if (backgroundJobOptions.UseDailyCleanup)
+    {
+        builder.Services.AddHostedService<DailyReservationCleanupService>();
+    }
+    else
+    {
+        builder.Services.AddHostedService<ReservationCleanupService>();
+    }
+}
+
+// Register FluentValidation validators
+builder.Services.AddScoped<IValidator<DeskBookingService.Models.User>, UserValidator>();
+builder.Services.AddScoped<IValidator<DeskBookingService.Models.Building>, BuildingValidator>();
+builder.Services.AddScoped<IValidator<DeskBookingService.Models.Desk>, DeskValidator>();
+builder.Services.AddScoped<IValidator<DeskBookingService.Models.Reservation>, ReservationValidator>();
+
 builder.Services.AddMapster();
+
 // Add Swagger services
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
