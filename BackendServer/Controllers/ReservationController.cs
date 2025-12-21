@@ -114,6 +114,23 @@ namespace DeskBookingService.Controllers
             // Deduplicate dates first to avoid duplicate validation
             var uniqueDates = dto.ReservationDates.Distinct().ToList();
 
+            // Validate booking size limit (max 7 reservations per booking)
+            var bookingSizeValidation = _validationService.ValidateBookingSize(uniqueDates.Count);
+            if (!bookingSizeValidation.IsValid)
+            {
+                return BadRequest(new { error = bookingSizeValidation.ErrorMessage });
+            }
+
+            // Validate user's active reservations limit (max 30 active reservations)
+            var activeReservationsValidation = await _validationService.ValidateUserActiveReservationsLimit(
+                dto.UserId.ToString(),
+                uniqueDates.Count
+            );
+            if (!activeReservationsValidation.IsValid)
+            {
+                return BadRequest(new { error = activeReservationsValidation.ErrorMessage });
+            }
+
             // Validate all dates before creating any reservations (fail-fast)
             foreach (var date in uniqueDates)
             {
@@ -131,6 +148,9 @@ namespace DeskBookingService.Controllers
                 }
             }
 
+            // Generate a unique booking group ID for this reservation batch
+            var ReservationGroupId = Guid.NewGuid();
+
             // Create all reservations at once
             var reservations = uniqueDates.Select(date => new Reservation
                 {
@@ -138,6 +158,7 @@ namespace DeskBookingService.Controllers
                     DeskId = dto.DeskId,
                     ReservationDate = date,
                     Status = ReservationStatus.Active,
+                    ReservationGroupId = ReservationGroupId,
                     CreatedAt = DateTime.UtcNow
                 }).ToList();
 
@@ -177,16 +198,83 @@ namespace DeskBookingService.Controllers
             return Ok(reservationDates);
         }
 
-        [HttpGet("my-reservations")]
-        public async Task<IActionResult> GetUserReservations()
+        [HttpGet("my-reservations/{userId}")]
+        public async Task<IActionResult> GetUserReservations(string userId)
         {
-            throw new NotImplementedException();
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            var reservations = await _context.Reservations
+                .Where(r => r.UserId == userId && r.Status == ReservationStatus.Active)
+                .Include(r => r.Desk)
+                    .ThenInclude(d => d!.Building)
+                .OrderBy(r => r.ReservationDate)
+                .ToListAsync();
+
+            var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
+            return Ok(reservationDtos);
         }
 
-        [HttpGet("my-reservations/history")]
-        public async Task<IActionResult> GetUserReservationHistory()
+        [HttpGet("my-reservations/grouped/{userId}")]
+        public async Task<IActionResult> GetUserReservationsGrouped(string userId)
         {
-            throw new NotImplementedException();
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            var reservations = await _context.Reservations
+                .Where(r => r.UserId == userId && r.Status == ReservationStatus.Active)
+                .Include(r => r.Desk)
+                    .ThenInclude(d => d!.Building)
+                .OrderByDescending(r => r.CreatedAt)
+                .ToListAsync();
+
+            // Group by ReservationGroupId
+            var groupedReservations = reservations
+                .GroupBy(r => r.ReservationGroupId)
+                .Select(g => new
+                {
+                    ReservationGroupId = g.Key,
+                    createdAt = g.First().CreatedAt,
+                    deskId = g.First().DeskId,
+                    deskDescription = g.First().Desk?.Description,
+                    buildingName = g.First().Desk?.Building?.Name,
+                    reservationCount = g.Count(),
+                    dates = g.OrderBy(r => r.ReservationDate)
+                             .Select(r => r.ReservationDate)
+                             .ToList(),
+                    reservations = _mapper.Map<List<ReservationDto>>(g.OrderBy(r => r.ReservationDate).ToList())
+                })
+                .OrderByDescending(g => g.createdAt)
+                .ToList();
+
+            return Ok(groupedReservations);
+        }
+
+        [HttpGet("my-reservations/history/{userId}")]
+        public async Task<IActionResult> GetUserReservationHistory(string userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null)
+            {
+                return BadRequest("User not found");
+            }
+
+            var reservations = await _context.Reservations
+                .Where(r => r.UserId == userId &&
+                    (r.Status == ReservationStatus.Cancelled || r.ReservationDate < DateOnly.FromDateTime(DateTime.UtcNow)))
+                .Include(r => r.Desk)
+                    .ThenInclude(d => d!.Building)
+                .OrderByDescending(r => r.ReservationDate)
+                .ToListAsync();
+
+            var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
+            return Ok(reservationDtos);
         }
 
         [HttpPatch("my-reservations/cancel-single-day/{deskId}/{date}/{userId}")]
@@ -224,32 +312,56 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "Failed to cancel reservation: " + ex.Message);
             }
         }
-
-        [HttpPatch("my-reservations/cancel-date-range/{deskId}/{userId}")]
-        public async Task<IActionResult> CancelReservationsForDateRange(int deskId, string userId)
+        [HttpPatch("my-reservations/cancel-booking-group/{deskId}/{date}/{userId}")]
+        public async Task<IActionResult> CancelBookingGroup(int deskId, DateOnly date, string userId)
         {
+            // Find all reservations in the same booking group and cancel them all
             try
             {
-                // Verify user (for production authentificate without passing userId in request)
+                // Verify user (for production authenticate without passing userId in request)
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
                     return BadRequest("User not found");
                 }
-                // Find reservation entry
+
+                // Find the reservation entry for the given desk and date
+                var reservation = await _context.Reservations
+                    .Where(r => r.DeskId == deskId && r.ReservationDate == date && r.UserId == userId)
+                    .FirstOrDefaultAsync();
+                    
+                if (reservation == null)
+                {
+                    return NotFound($"No reservation found for desk: {deskId} on {date}");
+                }
+
+                // Get the reservation group ID from the found reservation
+                var reservationGroupId = reservation.ReservationGroupId;
+
+                // Find all reservations in this booking group for this user
                 var reservations = await _context.Reservations
-                    .Where(r => r.DeskId == deskId && 
-                    r.UserId == userId
+                    .Where(r => r.ReservationGroupId == reservationGroupId &&
+                    r.UserId == userId &&
+                    r.Status == ReservationStatus.Active
                     ).ToListAsync();
 
-                foreach (var reservation in reservations)
+                if (reservations.Count == 0)
                 {
-                    reservation.CanceledAt = DateTime.UtcNow;
-                    reservation.Status = ReservationStatus.Cancelled;
+                    return NotFound($"No active reservations found for booking group: {reservationGroupId}");
+                }
+
+                // Cancel all reservations in the booking group
+                foreach (var res in reservations)
+                {
+                    res.CanceledAt = DateTime.UtcNow;
+                    res.Status = ReservationStatus.Cancelled;
                 }
 
                 await _context.SaveChangesAsync();
-                return Ok();
+                return Ok(new {
+                    message = $"Successfully cancelled {reservations.Count} reservation(s)",
+                    cancelledCount = reservations.Count
+                });
             }
             catch (Exception ex)
             {

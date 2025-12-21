@@ -9,6 +9,9 @@ public class Reservation
 
     public ReservationStatus Status { get; set;} = ReservationStatus.Active; // Status for soft deletion
 
+    // Reservation group - links reservations made together in a single booking session
+    public Guid? ReservationGroupId { get; set; }
+
     // Navigation properties
     public User? User { get; set;}
     public Desk? Desk { get; set;}
@@ -17,4 +20,3 @@ public class Reservation
     public DateTime CreatedAt {get; set;} = DateTime.UtcNow;
     public DateTime? CanceledAt { get; set;}
 }
-
