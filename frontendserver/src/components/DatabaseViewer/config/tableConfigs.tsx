@@ -112,8 +112,6 @@ export const createTableConfigs = (
                     label: 'Date',
                     render: (value: string) => formatDate(value)
                   },
-                  { key: 'startDate', label: 'Start Time' },
-                  { key: 'endDate', label: 'End Time' }
                 ]
               };
               handleViewDetails(user, config, 'reservations' as TableName);
@@ -244,7 +242,7 @@ export const createTableConfigs = (
         label: 'Description',
         render: (value: string | null) => formatNullableText(value)
       },
-      { key: 'buildingName', label: 'Building' },
+      { key: 'buildingId', label: 'Building' },
       {
         key: 'reservations',
         label: 'Reservations',
@@ -266,9 +264,7 @@ export const createTableConfigs = (
                     key: 'reservationDate',
                     label: 'Date',
                     render: (value: string) => formatDate(value)
-                  },
-                  { key: 'startDate', label: 'Start Time' },
-                  { key: 'endDate', label: 'End Time' }
+                  }
                 ]
               };
               handleViewDetails(desk, config, 'reservations' as TableName);
@@ -303,9 +299,7 @@ export const createTableConfigs = (
         key: 'reservationDate',
         label: 'Date',
         render: (value: string) => formatDate(value)
-      },
-      { key: 'startDate', label: 'Start Time' },
-      { key: 'endDate', label: 'End Time' }
+      }
     ]
   }
 ];

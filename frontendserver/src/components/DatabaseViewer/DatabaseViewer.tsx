@@ -217,7 +217,7 @@ const DatabaseViewer: React.FC = () => {
         </div>
       )}
 
-      <CrudModal
+      {/* <CrudModal
         show={showCrudModal}
         mode={crudMode}
         title={crudModalTitle}
@@ -228,7 +228,7 @@ const DatabaseViewer: React.FC = () => {
         onClose={closeCrudModal}
         onFormChange={handleFormChange}
         onSubmit={handleSubmit}
-      />
+      /> */}
     </div>
   );
 };

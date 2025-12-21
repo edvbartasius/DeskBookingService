@@ -38,7 +38,7 @@ export const ReservationConfirmModal: React.FC<ReservationConfirmModalProps> = (
     if (show && !isSuccess && initialDate) {
       setSelectedDates([initialDate]);
     }
-  }, [show, isSuccess, initialDate]);
+  }, [show, isSuccess, initialDate, bookedDates]);
 
   const handleViewReservations = () => {
     navigate('/profile');

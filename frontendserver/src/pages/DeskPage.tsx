@@ -4,7 +4,7 @@ import {
   DeskDto
 } from "../components/FloorPlan/index.tsx";
 import { Container, Row, Col, Card } from "react-bootstrap";
-import { DateSelector, useOfficeClosedDates } from "../components/DateSelector/index.tsx";
+import { DateSelector, useDeskAvailability, useOfficeClosedDates } from "../components/DateSelector/index.tsx";
 import { startOfDay, addDays } from "date-fns";
 import { Building } from "../types/booking.types.tsx";
 import api from "../services/api.ts";
@@ -35,7 +35,7 @@ const DeskPage = () => {
 
   // Fetch office closed dates
   const { closedDates, loading: loadingClosedDates } = useOfficeClosedDates(selectedBuilding?.id);
-
+  const { bookedDates, loading: loadingBookedDates } = useDeskAvailability(deskToReserve?.id);
 
   // Fetch buildings on mount
   useEffect(() => {
@@ -182,6 +182,7 @@ const DeskPage = () => {
 
   const handleBuildingChange = (building: Building | null) => {
     setSelectedBuilding(building);
+    setDeskToReserve(null);
   };
 
   return (
@@ -246,7 +247,7 @@ const DeskPage = () => {
         isLoading={isReservationLoading}
         error={reservationError}
         onConfirm={handleConfirmReservation}
-        bookedDates={[]}
+        bookedDates={bookedDates}
         closedDates={closedDates}
         initialDate={selectedDate}
       />

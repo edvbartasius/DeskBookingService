@@ -43,6 +43,4 @@ export interface Reservation {
     userId: string;
     deskId: number;
     reservationDate: string; // ISO date string
-    startDate: string; // time string
-    endDate: string; // time string
 }

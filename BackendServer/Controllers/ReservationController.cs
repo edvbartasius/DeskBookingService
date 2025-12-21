@@ -113,6 +113,12 @@ namespace DeskBookingService.Controllers
 
             // Return only the reservation dates
             var reservationDates = reservations.Select(r => r.ReservationDate).ToList();
+            // Log reservation dates to the console
+            Console.WriteLine($"Desk {deskId} reservation dates:");
+            foreach (var date in reservationDates)
+            {
+                Console.WriteLine(date.ToString("yyyy-MM-dd"));
+            }
             return Ok(reservationDates);
         }
 

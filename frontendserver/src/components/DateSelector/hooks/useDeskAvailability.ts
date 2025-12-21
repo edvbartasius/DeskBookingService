@@ -52,6 +52,7 @@ export const useDeskAvailability = (deskId: number | undefined): UseDeskAvailabi
           const dateStrings: string[] = response.data || [];
 
           console.log(`Fetched ${dateStrings.length} booked dates for desk ${deskId}`);
+          console.log(`bookedDates: ${dateStrings}`);
 
           // Convert date strings to Date objects
           const dates = dateStrings.map((dateStr: string) => new Date(dateStr));
