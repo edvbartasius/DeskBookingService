@@ -1,9 +1,11 @@
 using DeskBookingService.Models;
 using DeskBookingService.Models.DTOs;
+using DeskBookingService.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using MapsterMapper;
 using System.Data.Common;
+using FluentValidation;
 
 
 namespace DeskBookingService.Controllers
@@ -14,11 +16,13 @@ namespace DeskBookingService.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
+        private readonly IValidator<Building> _validator;
 
-        public BuildingController(AppDbContext context, IMapper mapper)
+        public BuildingController(AppDbContext context, IMapper mapper, IValidator<Building> validator)
         {
             _context = context;
             _mapper = mapper;
+            _validator = validator;
         }
 
         [HttpGet("get-buildings")]
@@ -27,8 +31,8 @@ namespace DeskBookingService.Controllers
             try
             {
                 var buildings = await _context.Buildings.ToListAsync();
-                var buildingListItemDtos = _mapper.Map<List<BuildingListItemDto>>(buildings);
-                return Ok(buildingListItemDtos);
+                var buildingDtos = _mapper.Map<List<BuildingDto>>(buildings);
+                return Ok(buildingDtos);
             }
             catch (DbException ex)
             {
@@ -48,6 +52,63 @@ namespace DeskBookingService.Controllers
                 }
                 _context.Buildings.Remove(entry);
                 await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+        [HttpPost("add")]
+        public async Task<IActionResult> AddBuilding([FromBody] BuildingDto buildingDto)
+        {
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(buildingDto));
+            try
+            {
+                var building = _mapper.Map<Building>(buildingDto);
+
+                // Validate using FluentValidation
+                var validationResult = await _validator.ValidateAsync(building);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new { error = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                _context.Buildings.Add(building);
+                await _context.SaveChangesAsync();
+
+                return Ok(building);
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateBuilding(int id, [FromBody] BuildingDto buildingDto)
+        {
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(buildingDto));
+            try
+            {
+                var building = await _context.Buildings.FindAsync(id);
+                if (building == null)
+                {
+                    return NotFound($"Building with ID: {id}, not found");
+                }
+
+                _mapper.Map(buildingDto, building);
+
+                // Validate using FluentValidation
+                var validationResult = await _validator.ValidateAsync(building);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new { error = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                _context.Buildings.Update(building);
+                await _context.SaveChangesAsync();
+
                 return Ok();
             }
             catch (DbUpdateException ex)

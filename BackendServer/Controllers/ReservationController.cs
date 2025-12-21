@@ -4,6 +4,7 @@ using DeskBookingService.Models.DTOs;
 using DeskBookingService.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 namespace DeskBookingService.Controllers
 {
@@ -14,15 +15,18 @@ namespace DeskBookingService.Controllers
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
         private readonly ReservationValidationService _validationService;
+        private readonly IValidator<Reservation> _validator;
 
         public ReservationController(
             AppDbContext context,
             IMapper mapper,
-            ReservationValidationService validationService)
+            ReservationValidationService validationService,
+            IValidator<Reservation> validator)
         {
             _context = context;
             _mapper = mapper;
             _validationService = validationService;
+            _validator = validator;
         }
 
         [HttpGet]
@@ -50,6 +54,38 @@ namespace DeskBookingService.Controllers
                 }
                 _context.Reservations.Remove(entry);
                 await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateReservation(int id, [FromBody] UpdateReservationDto reservationDto)
+        {
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(reservationDto));
+            try
+            {
+                var reservation = await _context.Reservations.FindAsync(id);
+                if (reservation == null)
+                {
+                    return NotFound($"Reservation with ID: {id}, not found");
+                }
+
+                _mapper.Map(reservationDto, reservation);
+
+                // Validate using FluentValidation
+                var validationResult = await _validator.ValidateAsync(reservation);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new { error = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                _context.Reservations.Update(reservation);
+                await _context.SaveChangesAsync();
+
                 return Ok();
             }
             catch (DbUpdateException ex)

@@ -3,8 +3,7 @@ using DeskBookingService.Models;
 using DeskBookingService.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http.HttpResults;
+using FluentValidation;
 
 namespace DeskBookingService.Controllers
 {
@@ -14,10 +13,13 @@ namespace DeskBookingService.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-        public UserController(AppDbContext context, IMapper mapper)
+        private readonly IValidator<User> _validator;
+
+        public UserController(AppDbContext context, IMapper mapper, IValidator<User> validator)
         {
             _context = context;
             _mapper = mapper;
+            _validator = validator;
         }
         [HttpGet("get-users")]
         public async Task<IActionResult> GetUsers()
@@ -26,6 +28,44 @@ namespace DeskBookingService.Controllers
             var userDtos = _mapper.Map<List<UserDto>>(users);
             return Ok(userDtos);
         }
+        [HttpPost("add")]
+        public async Task<IActionResult> AddUser([FromBody] UserDto userDto)
+        {
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(userDto));
+            try
+            {
+                var user = _mapper.Map<User>(userDto);
+
+                // Validate using FluentValidation
+                var validationResult = await _validator.ValidateAsync(user);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new { error = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                // Check if user already exists
+                if (await _context.Users.AnyAsync(u => u.Email == user.Email))
+                {
+                    return BadRequest(new { error = "User with this email already exists." });
+                }
+
+                // Generate ID if not provided
+                if (string.IsNullOrEmpty(user.Id))
+                {
+                    user.Id = Guid.NewGuid().ToString();
+                }
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                return Ok(user);
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> Delete(string id)
         {
@@ -38,6 +78,37 @@ namespace DeskBookingService.Controllers
                 }
                 _context.Users.Remove(entry);
                 await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+        [HttpPut("update/{id}")]
+        public async Task<IActionResult> UpdateUser(string id, [FromBody] UserDto userDto)
+        {
+            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(userDto));
+            try
+            {
+                var user = await _context.Users.FindAsync(id);
+                if (user == null)
+                {
+                    return NotFound($"User with ID: {id}, not found");
+                }
+
+                _mapper.Map(userDto, user);
+
+                // Validate using FluentValidation
+                var validationResult = await _validator.ValidateAsync(user);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new { error = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)) });
+                }
+
+                _context.Users.Update(user);
+                await _context.SaveChangesAsync();
+
                 return Ok();
             }
             catch (DbUpdateException ex)
@@ -81,21 +152,21 @@ namespace DeskBookingService.Controllers
         }
 
         [HttpPost("login-user")]
-        public async Task<IActionResult> LoginUser([FromBody] UserDto userDto)
+        public async Task<IActionResult> LoginUser([FromBody] LoginDto loginDto)
         {
             try
             {
                 // Check if email is valid & registered to a user
-                if (!IsValidEmail(userDto.Email))
+                if (!IsValidEmail(loginDto.Email))
                     return BadRequest("No valid email provided");
-                if (!await IsRegisteredEmail(userDto.Email))
+                if (!await IsRegisteredEmail(loginDto.Email))
                 {
                     return BadRequest("Email is not registered");
                 }
                 // Get the user by credentials by checking if password matches the one with specified email
                 // Since no authentification is needed as a requirement, just check plaintext password
                 // In production environment ensure proper security/authentification measures
-                var loggedInUser = await GetUserByCredentials(userDto.Email, userDto.Password);
+                var loggedInUser = await GetUserByCredentials(loginDto.Email, loginDto.Password);
 
                 if (loggedInUser == null)
                 {
