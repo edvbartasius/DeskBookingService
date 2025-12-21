@@ -83,24 +83,6 @@ const validateReservation = (data: any): string | null => {
   if (!data.reservationDate) {
     return 'Reservation date is required';
   }
-  if (!data.startDate) {
-    return 'Start time is required';
-  }
-  if (!data.endDate) {
-    return 'End time is required';
-  }
-
-  // Date/time logic validation
-  try {
-    const startTime = parseTime(data.startDate);
-    const endTime = parseTime(data.endDate);
-
-    if (endTime <= startTime) {
-      return 'End time must be after start time';
-    }
-  } catch (e) {
-    return 'Invalid time format';
-  }
 
   // Check if reservation date is in the past
   try {

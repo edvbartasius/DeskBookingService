@@ -38,6 +38,26 @@ namespace DeskBookingService.Controllers
             return Ok(reservationDtos);
         }
 
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var entry = await _context.Reservations.FindAsync(id);
+                if (entry == null)
+                {
+                    return NotFound();
+                }
+                _context.Reservations.Remove(entry);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateReservation(CreateReservationDTO dto)
         {

@@ -32,5 +32,25 @@ namespace DeskBookingService.Controllers
             var deskDtos = _mapper.Map<List<DeskDto>>(desks);
             return Ok(deskDtos);
         }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteDesk(int id)
+        {
+            try
+            {
+                var entry = await _context.Desks.FindAsync(id);
+                if (entry == null)
+                {
+                    return NotFound();
+                }
+                _context.Desks.Remove(entry);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
     }
 }

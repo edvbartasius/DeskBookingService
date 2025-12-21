@@ -135,17 +135,20 @@ export const useCrudOperations = () => {
       let response;
       switch (crudMode) {
         case 'add':
-          response = await api.post(`admin/${targetTable}`, crudFormData);
+          console.log(`Calling: ${targetTable}/add ${crudFormData}`)
+          response = await api.post(`${targetTable}/add`, crudFormData);
           console.log('Add response:', response);
           break;
         case 'edit':
           const editId = crudFormData.id;
-          response = await api.put(`admin/${targetTable}/${editId}`, crudFormData);
+          console.log(`Calling: ${targetTable}/update/${editId}, ${crudFormData}`)
+          response = await api.put(`${targetTable}/update/${editId}`, crudFormData);
           console.log('Edit response:', response);
           break;
         case 'delete':
           const deleteId = crudFormData.id;
-          response = await api.delete(`admin/${targetTable}/${deleteId}`);
+          console.log(`Calling: ${targetTable}/delete/${deleteId}`)
+          response = await api.delete(`${targetTable}/delete/${deleteId}`);
           console.log('Delete response:', response);
           break;
       }

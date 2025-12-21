@@ -35,6 +35,27 @@ namespace DeskBookingService.Controllers
                 return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
             }
         }
+
+        [HttpDelete("delete/{id}")]
+        public async Task<IActionResult> DeleteBuilding(int id)
+        {
+            try
+            {
+                var entry = await _context.Buildings.FindAsync(id);
+                if (entry == null)
+                {
+                    return NotFound();
+                }
+                _context.Buildings.Remove(entry);
+                await _context.SaveChangesAsync();
+                return Ok();
+            }
+            catch (DbUpdateException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+        }
+
         [HttpGet("get-floor-plan/{buildingId}/{date}/{userId}")]
         public async Task<IActionResult> GetFloorPlan(int buildingId, DateOnly date, string userId)
         {
