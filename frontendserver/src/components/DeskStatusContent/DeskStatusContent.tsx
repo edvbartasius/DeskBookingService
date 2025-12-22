@@ -67,7 +67,7 @@ export const DeskStatusContent: React.FC<DeskStatusContentProps> = ({
       {desk.isReservedByCaller && (
         <div>
           <small className="text-primary d-block mb-1 pb-0 mb-0" style={{ fontSize: '0.75rem' }}>
-            <strong className='mb-0'>Your reservation</strong>
+            <strong>Your reservation</strong>
           </small>
           {showButton && variant === 'full' && onCancelClick && (
             <div className="d-flex gap-1">

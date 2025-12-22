@@ -4,7 +4,7 @@ import {
   DeskDto,
   FloorPlanCanvas
 } from "../components/FloorPlan/index.tsx";
-import { Container, Row, Col, Card, ButtonGroup, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, ButtonGroup, Button, Modal } from "react-bootstrap";
 import { DateSelector, useDeskAvailability, useOfficeClosedDates } from "../components/DateSelector/index.tsx";
 import { startOfDay, addDays } from "date-fns";
 import { Building } from "../types/booking.types.tsx";
@@ -14,6 +14,8 @@ import { BuildingSelector } from "../components/BuildingSelector/index.tsx";
 import { DeskListView } from "../components/DeskListView/index.tsx";
 import { ReservationConfirmModal } from "../components/ReservationConfirmModal/index.tsx";
 import ConfirmationModal from "../components/ConfirmationModal.tsx";
+import LoginModal from "../components/LoginModal.tsx";
+import RegisterModal from "../components/RegisterModal.tsx";
 import "../styles/DeskPage.css";
 
 // Helper function to format Date to YYYY-MM-DD in local timezone
@@ -34,6 +36,11 @@ const DeskPage = () => {
   const [loading, setLoading] = useState(true);
   const [loadingDesks, setLoadingDesks] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // Login/Register modal state
+  const [showAuthPromptModal, setShowAuthPromptModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   // Single-date reservation state
   const today = startOfDay(new Date());
@@ -106,6 +113,12 @@ const DeskPage = () => {
   }, [selectedBuilding, selectedDate, loggedInUser?.id]);
 
   const handleReserveClick = (desk: DeskDto) => {
+    // Check if user is logged in
+    if (!loggedInUser) {
+      setShowAuthPromptModal(true);
+      return;
+    }
+
     setDeskToReserve(desk);
     setIsReservationSuccess(false);
     setReservationError(null);
@@ -181,6 +194,7 @@ const DeskPage = () => {
       if (cancelType === 'single') {
         // Cancel single day
         const dateStr = selectedDate ? formatDateLocal(selectedDate) : '';
+        console.log("Cancel single day:", desk.id, dateStr, loggedInUser?.id);
         const url = `/reservations/my-reservations/cancel-single-day/${desk.id}/${dateStr}/${loggedInUser?.id}`;
         response = await api.patch(url);
       } else {
@@ -253,65 +267,7 @@ const DeskPage = () => {
     return fromDate; // Fallback to original date if no available date found
   };
 
-  // Quick date navigation handlers
-  const handleTodayClick = () => {
-    const isClosed = closedDates.some(closedDate =>
-      formatDateLocal(closedDate) === formatDateLocal(today)
-    );
-
-    if (isClosed) {
-      const nextAvailable = findNextAvailableDate(today, 'next');
-      setSelectedDate(nextAvailable);
-    } else {
-      setSelectedDate(today);
-    }
-  };
-
-  const handleTomorrowClick = () => {
-    const isClosed = closedDates.some(closedDate =>
-      formatDateLocal(closedDate) === formatDateLocal(tomorrow)
-    );
-
-    if (isClosed) {
-      const nextAvailable = findNextAvailableDate(tomorrow, 'next');
-      setSelectedDate(nextAvailable);
-    } else {
-      setSelectedDate(tomorrow);
-    }
-  };
-
-  const handlePrevDay = () => {
-    if (!selectedDate) return;
-    const prevDate = addDays(selectedDate, -1);
-    const isClosed = closedDates.some(closedDate =>
-      formatDateLocal(closedDate) === formatDateLocal(prevDate)
-    );
-
-    if (isClosed) {
-      const nextAvailable = findNextAvailableDate(prevDate, 'prev');
-      setSelectedDate(nextAvailable);
-    } else {
-      setSelectedDate(prevDate);
-    }
-  };
-
-  const handleNextDay = () => {
-    if (!selectedDate) return;
-    const nextDate = addDays(selectedDate, 1);
-    const isClosed = closedDates.some(closedDate =>
-      formatDateLocal(closedDate) === formatDateLocal(nextDate)
-    );
-
-    if (isClosed) {
-      const nextAvailable = findNextAvailableDate(nextDate, 'next');
-      setSelectedDate(nextAvailable);
-    } else {
-      setSelectedDate(nextDate);
-    }
-  };
-
   const deskStats = getDeskStats();
-
   return (
     <Container className="py-4">
       <h1 className="text-start mb-4 pt-2 fw-bold">Desk Booking</h1>
@@ -472,6 +428,59 @@ const DeskPage = () => {
         confirmText="Yes, Cancel"
         cancelText="No, Keep It"
         variant="danger"
+      />
+
+      {/* Authentication Prompt Modal */}
+      <Modal show={showAuthPromptModal} onHide={() => setShowAuthPromptModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Login Required</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center py-4">
+          <i className="bi bi-person-lock" style={{ fontSize: '3rem', color: '#0d6efd' }}></i>
+          <p className="mt-3 mb-4">
+            You need to be logged in to make a reservation. Please login or register to continue.
+          </p>
+          <div className="d-flex gap-2 justify-content-center">
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowAuthPromptModal(false);
+                setShowLoginModal(true);
+              }}
+            >
+              Login
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={() => {
+                setShowAuthPromptModal(false);
+                setShowRegisterModal(true);
+              }}
+            >
+              Register
+            </Button>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Login Modal */}
+      <LoginModal
+        show={showLoginModal}
+        onHide={() => setShowLoginModal(false)}
+        onSwitchToRegister={() => {
+          setShowLoginModal(false);
+          setShowRegisterModal(true);
+        }}
+      />
+
+      {/* Register Modal */}
+      <RegisterModal
+        show={showRegisterModal}
+        onHide={() => setShowRegisterModal(false)}
+        onSwitchToLogin={() => {
+          setShowRegisterModal(false);
+          setShowLoginModal(true);
+        }}
       />
     </Container>
   );

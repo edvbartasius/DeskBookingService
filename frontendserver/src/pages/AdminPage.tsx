@@ -1,7 +1,7 @@
 import DatabaseViewer from "../components/DatabaseViewer/DatabaseViewer.tsx";
 import { useUser } from "../contexts/UserContext.tsx"
 import { Button, Card, Container } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 
 const AdminPage = () => {
     const { isAdmin } = useUser(); // Logged in user context for limiting accesibility to page
@@ -21,18 +21,8 @@ const AdminPage = () => {
                     </Container>
                 </div>
             ) : (
-                <Container className="md-6 d-flex justify-content-center align-items-center"
-                style={{minHeight: '50vh'}}>
-                    <Card className="d-flex justify-content-center align-items-center">
-                        <Card.Header>Unauthorized access!</Card.Header>
-                        <Card.Body>
-                            <Link to="/home">
-                                <Button variant="primary">Home</Button>
-                            </Link>
-                        </Card.Body>
-
-                    </Card>
-                </Container>
+                // If user is not logged in, redirect home
+                <Navigate to="/" replace/>
             )}
         </>
     );

@@ -1,6 +1,6 @@
 import { Button, Modal } from "react-bootstrap";
 import { useState } from "react";
-import { format, isBefore, startOfDay, addDays, startOfMonth, endOfMonth, getDay } from "date-fns";
+import { format, isBefore, startOfDay, addDays, startOfMonth, endOfMonth, getDay, isAfter, addMonths } from "date-fns";
 import { getReservationDateLabel } from "./utils/dateUtils.ts";
 
 interface DateSelectorProps {
@@ -38,7 +38,8 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   };
 
   const isDateDisabled = (date: Date): boolean => {
-    return isBefore(date, today) || isBlackoutDate(date);
+    const threeMonthsFromToday = addMonths(today, 3); // Limit calendar to three months in advance
+    return isBefore(date, today) || isAfter(date, threeMonthsFromToday) || isBlackoutDate(date);
   };
 
   const handleDateClick = (date: Date): void => {
@@ -67,11 +68,18 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   };
 
   const handlePrevMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+    const prevMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1);
+    if (!isBefore(prevMonth, startOfMonth(today))) {
+      setCurrentMonth(prevMonth);
+    }
   };
 
   const handleNextMonth = () => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+    const nextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1);
+    const maxMonth = addMonths(startOfMonth(today), 3);
+    if (isBefore(nextMonth, maxMonth)) {
+      setCurrentMonth(nextMonth);
+    }
   };
 
   const generateCalendarDays = (): Date[][] => {
@@ -102,7 +110,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
     isToday: boolean
   ): string => {
     if (isSelected) return "#0d6efd";
-    if (isBlackout) return "#dc3545";
+    if (isBlackout) return "#fc4f61ff";
     if (isToday) return "#e9ecef";
     return "transparent";
   };
@@ -112,7 +120,8 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
     isBlackout: boolean,
     isCurrentMonth: boolean
   ): string => {
-    if (isSelected || isBlackout) return "white";
+    if (isSelected) return "white";
+    if (isBlackout) return "#212529";
     if (!isCurrentMonth) return "#adb5bd";
     return "inherit";
   };
@@ -138,7 +147,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
           color: getDayTextColor(isSelected, isBlackout, isCurrentMonth),
           borderRadius: "4px",
           fontSize: "0.9rem",
-          opacity: isDisabled ? 0.5 : 1,
+          opacity: isDisabled && !isBlackout ? 0.5 : 1,
         }}
       >
         {date.getDate()}
@@ -180,12 +189,6 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
     );
   };
 
-  const getSelectedDatesLabel = () => {
-    if (selectedDates.length === 0) return "No dates selected";
-    if (selectedDates.length === 1) return getReservationDateLabel(selectedDates[0]);
-    return `${selectedDates.length} dates selected`;
-  };
-
   return (
     <>
       {!multiSelect ? (
@@ -200,20 +203,18 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
             onClick={() => setShowModal(true)}
             disabled={disabled}
           >
-            {selectedDate ? "Change Date" : "Select Date"}
+            {selectedDate ? "Select Date(s)" : "Change Date(s)"}
           </Button>
         </div>
       ) : (
         <div className="d-flex align-items-center gap-2">
-          <span className="text-muted">Dates:</span>
-          <strong>{getSelectedDatesLabel()}</strong>
           <Button
             variant="outline-dark"
             size="sm"
             onClick={() => setShowModal(true)}
             disabled={disabled}
           >
-            {selectedDates.length > 0 ? "Change Dates" : "Select Dates"}
+            {selectedDates.length > 0 ? "Change Date(s)" : "Select Date(s)"}
           </Button>
         </div>
       )}
@@ -229,7 +230,9 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
           {multiSelect && selectedDates.length > 0 && (
             <div className="mt-3">
               <small className="text-muted">
-                Selected: {selectedDates.map(d => format(d, "MMM d")).join(", ")}
+                Selected: {selectedDates.slice()
+                  .sort((a, b) => a.getTime() - b.getTime())
+                  .map(d => format(d, "MMM d")).join(", ")}
               </small>
             </div>
           )}

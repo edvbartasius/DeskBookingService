@@ -116,7 +116,6 @@ namespace DeskBookingService.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> CreateReservation(CreateReservationDTO dto)
         {
-            Console.WriteLine("Received CreateReservation for ", dto.ReservationDates.Count, " reservations");
             // Validate user exists
             var user = await _context.Users.FindAsync(dto.UserId.ToString());
             if (user == null)
@@ -353,6 +352,7 @@ namespace DeskBookingService.Controllers
         [HttpPatch("my-reservations/cancel-single-day/{deskId}/{date}/{userId}")]
         public async Task<IActionResult> CancelReservation(int deskId, DateOnly date, string userId)
         {
+            Console.WriteLine("CancelReservation", deskId, date, userId);
             try
             {
                 // Verify user (for production authentificate without passing userId in request)

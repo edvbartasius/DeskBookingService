@@ -94,6 +94,13 @@ public class ReservationValidationService
             return dateValidation;
         }
 
+        // Check if date doesnt exceed limit (> 60 days)
+        var maxDaysValidation = ValidateMaxDaysInAdvance(date);
+        if (!maxDaysValidation.IsValid)
+        {
+            return maxDaysValidation;
+        }
+
         // Get desk with building info
         var desk = await _context.Desks
             .Include(d => d.Building)
@@ -109,6 +116,16 @@ public class ReservationValidationService
         if (!isAvailable)
         {
             return (false, $"Desk {deskId} is already reserved for {date}");
+        }
+
+        return (true, null);
+    }
+
+    private (bool IsValid, string? ErrorMessage) ValidateMaxDaysInAdvance(DateOnly date)
+    {
+        if (date > DateOnly.FromDateTime(DateTime.UtcNow.AddDays(60)))
+        {
+            return (false, $"Reservations cannot be made more than 60 days in advance");
         }
 
         return (true, null);

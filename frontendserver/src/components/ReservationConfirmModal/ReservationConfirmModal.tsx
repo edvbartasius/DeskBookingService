@@ -68,7 +68,7 @@ export const ReservationConfirmModal: React.FC<ReservationConfirmModalProps> = (
   };
 
   return (
-    <Modal show={show} onHide={onHide} centered size="lg">
+    <Modal show={show} onHide={onHide} centered>
       <Modal.Header closeButton>
         <Modal.Title>
           {isSuccess ? 'Reservation Confirmed' : 'Reserve Desk'}
@@ -82,10 +82,17 @@ export const ReservationConfirmModal: React.FC<ReservationConfirmModalProps> = (
             </Alert>
             <div className="mb-3">
               <p className="mb-2"><strong>Desk:</strong> {desk.description}</p>
-              <p className="mb-2">
-                <strong>Dates:</strong>{' '}
-                {selectedDates.map(d => format(d, 'MMM d, yyyy')).join(', ')}
-              </p>
+              <div className="mb-2">
+                <strong>Dates:</strong>
+                <ul className="mt-2 mb-0">
+                  {selectedDates
+                    .slice()
+                    .sort((a, b) => a.getTime() - b.getTime())
+                    .map((date, idx) => (
+                    <li key={idx}>{format(date, 'EEEE, MMMM d, yyyy')}</li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
         ) : (
@@ -100,7 +107,6 @@ export const ReservationConfirmModal: React.FC<ReservationConfirmModalProps> = (
             </div>
 
             <div className="mb-3">
-              <h6>Select Dates for Reservation</h6>
               <DateSelector
                 selectedDate={null}
                 onSelectedDateChange={() => {}}
@@ -114,14 +120,17 @@ export const ReservationConfirmModal: React.FC<ReservationConfirmModalProps> = (
             </div>
 
             {selectedDates.length > 0 && (
-              <Alert variant="info">
+              <div className="mb-3">
                 <strong>Selected {selectedDates.length} date{selectedDates.length > 1 ? 's' : ''}:</strong>
-                <div className="mt-2">
-                  {selectedDates.map((date, idx) => (
-                    <div key={idx}>{format(date, 'EEEE, MMMM d, yyyy')}</div>
+                <ul className="mt-2 mb-0">
+                  {selectedDates
+                    .slice()
+                    .sort((a, b) => a.getTime() - b.getTime())
+                    .map((date, idx) => (
+                    <li key={idx}>{format(date, 'EEEE, MMMM d, yyyy')}</li>
                   ))}
-                </div>
-              </Alert>
+                </ul>
+              </div>
             )}
           </div>
         )}

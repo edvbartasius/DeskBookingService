@@ -1,9 +1,7 @@
-import { Button, Card, Container, Row, Col } from "react-bootstrap";
+import { Card, Container, Row, Col, Modal, Button } from "react-bootstrap";
 import { useUser } from "../contexts/UserContext.tsx";
-import { Link } from "react-router-dom";
-import LoginModal from '../components/LoginModal.tsx';
+import { Navigate } from "react-router-dom";
 import { useState } from "react";
-import RegisterModal from "../components/RegisterModal.tsx";
 import {
     UserProfileContent,
     ActiveReservationsContent,
@@ -13,8 +11,6 @@ import { useActiveReservations, useReservationHistory, useUserProfile } from "..
 
 const ProfilePage = () => {
     const { loggedInUser } = useUser();
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [showRegisterModal, setShowRegisterModal] = useState(false);
 
     // Fetch user profile data dynamically
     const {
@@ -112,39 +108,8 @@ const ProfilePage = () => {
 
     // Render login prompt for non-authenticated users
     return (
-        <Container
-            className="md-6 d-flex justify-content-center align-items-center"
-            style={{ minHeight: '50vh' }}
-        >
-            <Card className="d-flex justify-content-center align-items-center">
-                <Card.Header>Login to view your profile!</Card.Header>
-                <Card.Body>
-                    <Link to="/home">
-                        <Button variant="primary" className="me-2">Home</Button>
-                    </Link>
-                    <Button onClick={() => setShowLoginModal(true)}>
-                        Login
-                    </Button>
-                </Card.Body>
-            </Card>
-
-            <LoginModal
-                show={showLoginModal}
-                onHide={() => setShowLoginModal(false)}
-                onSwitchToRegister={() => {
-                    setShowRegisterModal(true);
-                    setShowLoginModal(false);
-                }}
-            />
-            <RegisterModal
-                show={showRegisterModal}
-                onHide={() => setShowRegisterModal(false)}
-                onSwitchToLogin={() => {
-                    setShowRegisterModal(false);
-                    setShowLoginModal(true);
-                }}
-            />
-        </Container>
+        // If user is not logged in, redirect home
+        <Navigate to="/" replace/>
     );
 }
 
