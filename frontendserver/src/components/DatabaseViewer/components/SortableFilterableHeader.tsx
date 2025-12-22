@@ -23,7 +23,7 @@ export const SortableFilterableHeader: React.FC<SortableFilterableHeaderProps> =
   onFilterChange,
   canFilter = true
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded] = useState(false);
 
   const isActive = sortColumn === columnKey;
 
@@ -41,11 +41,6 @@ export const SortableFilterableHeader: React.FC<SortableFilterableHeaderProps> =
     if (!isExpanded) {
       onSort(columnKey);
     }
-  };
-
-  const toggleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(!isExpanded);
   };
 
   return (
@@ -80,25 +75,6 @@ export const SortableFilterableHeader: React.FC<SortableFilterableHeaderProps> =
           >
             {getSortIcon()}
           </span>
-          {canFilter && (
-            <button
-              className="btn btn-sm p-0 d-flex align-items-center justify-content-center"
-              onClick={toggleExpand}
-              type="button"
-              title={isExpanded ? 'Hide filter' : 'Show filter'}
-              style={{
-                background: 'none',
-                border: '1px solid rgba(255,255,255,0.3)',
-                borderRadius: '3px',
-                color: 'inherit',
-                width: '22px',
-                height: '22px',
-                fontSize: '0.9rem'
-              }}
-            >
-              {isExpanded ? '−' : '+'}
-            </button>
-          )}
         </div>
         {canFilter && isExpanded && (
           <div className="px-2 pb-2" onClick={(e) => e.stopPropagation()}>

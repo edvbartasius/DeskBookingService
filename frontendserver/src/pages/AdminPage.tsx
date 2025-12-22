@@ -1,39 +1,26 @@
-import ExpandableCardContainer, { CardConfig } from "../components/ExpandableCardContainer.tsx";
 import DatabaseViewer from "../components/DatabaseViewer/DatabaseViewer.tsx";
 import { useUser } from "../contexts/UserContext.tsx"
-import { Button, Card, Container } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Card, Container } from "react-bootstrap";
+import { Navigate } from "react-router-dom";
 
 const AdminPage = () => {
     const { isAdmin } = useUser(); // Logged in user context for limiting accesibility to page
-    const cards: CardConfig[] = [
-        {
-            id: 1,
-            title: "Database Viewer",
-            description: "View and manage database records",
-            allowExpand: true,
-            content: <DatabaseViewer /> //removed database viewer temporarily
-        }
-    ];
 
     return (
         <>
             {isAdmin ? (
-                <ExpandableCardContainer cards={cards} title="Admin Page" cardsPerRow={2} />
-            ) : (
-                <Container className="md-6 d-flex justify-content-center align-items-center"
-                style={{minHeight: '50vh'}}>
-                    <Card className="d-flex justify-content-center align-items-center">
-                        <Card.Header>Unauthorized access!</Card.Header>
+                <Container className="px-4">
+                    <h1 className="text-start mb-4 pt-4 fw-bold">Admin Dashboard</h1>
+                    <Card className="mt-4">
+                        <Card.Header className="fw-bold fs-2">Database Viewer</Card.Header>
                         <Card.Body>
-                            <Link to="/home">
-                                <Button variant="primary">Home</Button>
-                            </Link>
+                            <DatabaseViewer />
                         </Card.Body>
-
                     </Card>
                 </Container>
-
+            ) : (
+                // If user is not logged in, redirect home
+                <Navigate to="/" replace />
             )}
         </>
     );

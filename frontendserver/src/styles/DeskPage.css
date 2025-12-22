@@ -1,0 +1,136 @@
+/* Smooth transitions for view mode changes */
+.desk-page-view-transition {
+  transition: all 0.3s ease-in-out;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.desk-page-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+.desk-page-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.desk-page-card-header {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+  padding: 1rem 1.25rem;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+/* View toggle button group styling */
+.desk-page-view-toggle .btn {
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+}
+
+.desk-page-view-toggle .btn:hover {
+  transform: translateY(-1px);
+}
+
+.desk-page-view-toggle .btn-primary {
+  box-shadow: 0 2px 4px rgba(13, 110, 253, 0.25);
+}
+
+/* Enhanced header styling */
+.desk-page-header {
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+.desk-page-header h1 {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 2rem;
+}
+
+/* Empty state styling */
+.desk-page-empty-state {
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.desk-page-empty-state i {
+  font-size: 3.5rem;
+  color: #6c757d;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.desk-page-empty-state p {
+  color: #6c757d;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+}
+
+/* Loading spinner enhancement */
+.desk-page-spinner {
+  width: 3rem;
+  height: 3rem;
+  border-width: 0.3rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991px) {
+  .desk-page-view-toggle {
+    margin-top: 1rem;
+  }
+
+  .desk-page-header h1 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Smooth scrollbar for desk list */
+.desk-list-scrollable::-webkit-scrollbar {
+  width: 8px;
+}
+
+.desk-list-scrollable::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.desk-list-scrollable::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.desk-list-scrollable::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Desk statistics summary badges */
+.desk-stats-summary .badge {
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.desk-stats-summary .badge:hover {
+  transform: translateY(-2px);
+}
+
+.desk-stats-summary .badge i {
+  font-size: 0.85rem;
+}

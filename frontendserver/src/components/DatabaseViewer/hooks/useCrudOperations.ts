@@ -46,7 +46,7 @@ export const useCrudOperations = () => {
           type: 'select' as const,
           options: desks.map(desk => ({
             value: desk.id,
-            label: `Desk ${desk.id}${desk.description ? ' - ' + desk.description : ''} (${desk.buildingName})`
+            label: `Desk ${desk.id}${desk.description ? ' - ' + desk.description : ''}`
           }))
         };
       }
@@ -151,24 +151,17 @@ export const useCrudOperations = () => {
         transformedData.role = parseInt(transformedData.role);
       }
 
-      let response;
       switch (crudMode) {
         case 'add':
-          console.log(`Calling: ${targetTable}/add`, transformedData)
-          response = await api.post(`${targetTable}/add`, transformedData);
-          console.log('Add response:', response);
+          await api.post(`${targetTable}/add`, transformedData);
           break;
         case 'edit':
           const editId = transformedData.id;
-          console.log(`Calling: ${targetTable}/update/${editId}`, transformedData)
-          response = await api.put(`${targetTable}/update/${editId}`, transformedData);
-          console.log('Edit response:', response);
+          await api.put(`${targetTable}/update/${editId}`, transformedData);
           break;
         case 'delete':
           const deleteId = transformedData.id;
-          console.log(`Calling: ${targetTable}/delete/${deleteId}`)
-          response = await api.delete(`${targetTable}/delete/${deleteId}`);
-          console.log('Delete response:', response);
+          await api.delete(`${targetTable}/delete/${deleteId}`);
           break;
       }
       closeCrudModal();

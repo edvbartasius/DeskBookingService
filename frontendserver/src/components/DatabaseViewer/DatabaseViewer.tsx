@@ -59,7 +59,10 @@ const DatabaseViewer: React.FC = () => {
   } = useDropdownOptions();
 
   // Table configurations
-  const tableConfigs = useMemo(() => createTableConfigs(handleViewDetails), [handleViewDetails]);
+  const tableConfigs = useMemo(
+    () => createTableConfigs(handleViewDetails, buildings, users, desks),
+    [handleViewDetails, buildings, users, desks]
+  );
 
   // Get current table config
   const currentConfig = useMemo(
@@ -80,9 +83,11 @@ const DatabaseViewer: React.FC = () => {
 
   // CRUD handlers
   const handleAdd = async () => {
-    await fetchDropdownOptions();
     const activeConfig = getActiveConfig();
     if (!activeConfig) return;
+
+    // Fetch dropdown options and get the fresh data
+    const dropdownData = await fetchDropdownOptions();
 
     // Create context data if in detail view
     let contextData = undefined;
@@ -100,24 +105,27 @@ const DatabaseViewer: React.FC = () => {
     openAddModal(
       activeConfig.singularName,
       activeConfig.formFields || [],
-      users,
-      buildings,
-      desks,
+      dropdownData.users,
+      dropdownData.buildings,
+      dropdownData.desks,
       contextData
     );
   };
 
   const handleEdit = async (record: any) => {
-    await fetchDropdownOptions();
     const activeConfig = getActiveConfig();
     if (!activeConfig) return;
+
+    // Fetch dropdown options and get the fresh data
+    const dropdownData = await fetchDropdownOptions();
+
     openEditModal(
       record,
       activeConfig.singularName,
       activeConfig.formFields || [],
-      users,
-      buildings,
-      desks
+      dropdownData.users,
+      dropdownData.buildings,
+      dropdownData.desks
     );
   };
 

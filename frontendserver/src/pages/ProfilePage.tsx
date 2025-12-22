@@ -1,10 +1,6 @@
-import { Button, Card, Container } from "react-bootstrap";
-import ExpandableCardContainer, { CardConfig } from "../components/ExpandableCardContainer.tsx";
+import { Card, Container, Row, Col} from "react-bootstrap";
 import { useUser } from "../contexts/UserContext.tsx";
-import { Link } from "react-router-dom";
-import LoginModal from '../components/LoginModal.tsx';
-import { useState } from "react";
-import RegisterModal from "../components/RegisterModal.tsx";
+import { Navigate } from "react-router-dom";
 import {
     UserProfileContent,
     ActiveReservationsContent,
@@ -14,8 +10,6 @@ import { useActiveReservations, useReservationHistory, useUserProfile } from "..
 
 const ProfilePage = () => {
     const { loggedInUser } = useUser();
-    const [showLoginModal, setShowLoginModal] = useState(false);
-    const [showRegisterModal, setShowRegisterModal] = useState(false);
 
     // Fetch user profile data dynamically
     const {
@@ -41,12 +35,11 @@ const ProfilePage = () => {
     } = useReservationHistory(loggedInUser?.id);
 
     // Card configurations
-    const cards: CardConfig[] = [
+    const cards = [
         {
             id: 0,
             title: "User Profile",
             description: "View your profile information",
-            allowExpand: false,
             content: (
                 <UserProfileContent
                     user={userProfile}
@@ -60,7 +53,6 @@ const ProfilePage = () => {
             id: 1,
             title: "Active Reservations",
             description: "View and manage your active reservations",
-            allowExpand: true,
             content: (
                 <ActiveReservationsContent
                     reservations={activeReservations}
@@ -68,6 +60,7 @@ const ProfilePage = () => {
                     error={errorActive}
                     userId={loggedInUser?.id || ''}
                     onRefresh={refetchActive}
+                    onRefreshHistory={refetchHistory}
                 />
             )
         },
@@ -75,7 +68,6 @@ const ProfilePage = () => {
             id: 2,
             title: "Reservation History",
             description: "View your past and cancelled reservations",
-            allowExpand: true,
             content: (
                 <ReservationHistoryContent
                     history={reservationHistory}
@@ -87,54 +79,36 @@ const ProfilePage = () => {
         }
     ];
 
-
-
     // Render logged-in user view
     if (loggedInUser) {
         return (
-            <ExpandableCardContainer
-                cards={cards}
-                title="Profile Page"
-                cardsPerRow={3}
-            />
+            <Container className="px-4">
+                <h1 className="text-start mb-4 pt-4 fw-bold">Profile Page</h1>
+                <Row className="g-3">
+                    {cards.map((card) => (
+                        <Col key={card.id} xs={12} lg={4}>
+                            <Card className="h-100 d-flex flex-column">
+                                <Card.Header>
+                                    <div className="text-center">
+                                        <h2 className="fs-1">{card.title}</h2>
+                                        <p className="fs-6 mb-1 text-muted">{card.description}</p>
+                                    </div>
+                                </Card.Header>
+                                <Card.Body className="overflow-auto" style={{ maxHeight: '600px' }}>
+                                    {card.content}
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
+            </Container>
         );
     }
 
     // Render login prompt for non-authenticated users
     return (
-        <Container
-            className="md-6 d-flex justify-content-center align-items-center"
-            style={{ minHeight: '50vh' }}
-        >
-            <Card className="d-flex justify-content-center align-items-center">
-                <Card.Header>Login to view your profile!</Card.Header>
-                <Card.Body>
-                    <Link to="/home">
-                        <Button variant="primary" className="me-2">Home</Button>
-                    </Link>
-                    <Button onClick={() => setShowLoginModal(true)}>
-                        Login
-                    </Button>
-                </Card.Body>
-            </Card>
-
-            <LoginModal
-                show={showLoginModal}
-                onHide={() => setShowLoginModal(false)}
-                onSwitchToRegister={() => {
-                    setShowRegisterModal(true);
-                    setShowLoginModal(false);
-                }}
-            />
-            <RegisterModal
-                show={showRegisterModal}
-                onHide={() => setShowRegisterModal(false)}
-                onSwitchToLogin={() => {
-                    setShowRegisterModal(false);
-                    setShowLoginModal(true);
-                }}
-            />
-        </Container>
+        // If user is not logged in, redirect home
+        <Navigate to="/" replace/>
     );
 }
 

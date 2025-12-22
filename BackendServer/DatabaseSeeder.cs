@@ -32,48 +32,68 @@ public static class DatabaseSeeder
             new Building
             {
                 Id = 1,
-                Name = "Main Office",
+                Name = "Main Office - Downtown",
                 FloorPlanWidth = 15,  // 15 cells wide
                 FloorPlanHeight = 10, // 10 cells tall
                 Desks = new List<Desk>
                 {
-                    // Row 1: Regular desks along the top (window seats)
-                    new Desk { Id = 101, Description = "Window desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 102, Description = "Window desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 103, Description = "Window desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 104, Description = "Window desk 4", PositionX = 4, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 105, Description = "Window desk 5", PositionX = 5, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    // Row 1: Regular desks along the top (window seats with city view)
+                    new Desk { Id = 101, DeskNumber = "A1", Description = "Window desk - City view", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 102, DeskNumber = "A2", Description = "Window desk - City view", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 103, DeskNumber = "A3", Description = "Window desk - City view", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 104, DeskNumber = "A4", Description = "Window desk - City view", PositionX = 4, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 105, DeskNumber = "A5", Description = "Standing desk - Window seat", PositionX = 5, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
 
-                    // Row 3: Regular desks
-                    new Desk { Id = 111, Description = "Quiet area", PositionX = 1, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 112, Description = "Quiet area", PositionX = 2, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 113, Description = "Quiet area", PositionX = 3, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 114, Description = "Quiet area", PositionX = 4, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 115, Description = "Quiet area", PositionX = 5, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    // Row 2: Central collaboration area
+                    new Desk { Id = 106, DeskNumber = "B1", Description = "Near kitchen - Collaborative zone", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 107, DeskNumber = "B2", Description = "Dual monitor setup available", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 108, DeskNumber = "B3", Description = "Ergonomic chair - Height adjustable", PositionX = 3, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 109, DeskNumber = "B4", Description = "Standing desk - Central location", PositionX = 4, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 110, DeskNumber = "B5", Description = "Desk with whiteboard nearby", PositionX = 5, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 1 },
 
-                    // Conference rooms (larger - takes up more cells)
-                    new Desk { Id = 150, Description = "Conference Room A", PositionX = 8, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
-                    new Desk { Id = 151, Description = "Conference Room B", PositionX = 11, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
-                    new Desk { Id = 152, Description = "Meeting Room", PositionX = 8, PositionY = 5, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    // Row 3: Quiet zone desks
+                    new Desk { Id = 111, DeskNumber = "C1", Description = "Quiet zone - Library rules", PositionX = 1, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 112, DeskNumber = "C2", Description = "Quiet zone - Focus area", PositionX = 2, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 113, DeskNumber = "C3", Description = "Quiet zone - Near power outlets", PositionX = 3, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 114, DeskNumber = "C4", Description = "Quiet zone - Corner desk", PositionX = 4, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 115, DeskNumber = "C5", Description = "Quiet zone - Privacy panels", PositionX = 5, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+
+                    // Row 4: Creative zone
+                    new Desk { Id = 116, DeskNumber = "D1", Description = "Creative hub - Whiteboard access", PositionX = 1, PositionY = 7, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 117, DeskNumber = "D2", Description = "Creative hub - Brainstorm area", PositionX = 2, PositionY = 7, Type = DeskType.RegularDesk, BuildingId = 1, IsInMaintenance = true, MaintenanceReason = "Ergonomic chair replacement scheduled" },
+                    new Desk { Id = 118, DeskNumber = "D3", Description = "Near coffee station", PositionX = 3, PositionY = 7, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 119, DeskNumber = "D4", Description = "Standing desk - Height adjustable", PositionX = 4, PositionY = 7, Type = DeskType.RegularDesk, BuildingId = 1, IsInMaintenance = true, MaintenanceReason = "Monitor arm installation in progress" },
+
+                    // Conference rooms
+                    new Desk { Id = 150, DeskNumber = "CR-A", Description = "Executive Conference - Seats 12", PositionX = 8, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    new Desk { Id = 151, DeskNumber = "CR-B", Description = "Board Room - Video conferencing", PositionX = 11, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1, IsInMaintenance = true, MaintenanceReason = "AV system upgrade - Expected completion Friday" },
+                    new Desk { Id = 152, DeskNumber = "CR-C", Description = "Team Meeting Room - Seats 6", PositionX = 8, PositionY = 5, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    new Desk { Id = 153, DeskNumber = "CR-D", Description = "Huddle Room - Seats 4", PositionX = 11, PositionY = 5, Type = DeskType.ConferenceRoom, BuildingId = 1 },
                 }
             },
             new Building
             {
                 Id = 2,
-                Name = "Annex Building",
+                Name = "Innovation Hub - Tech Campus",
                 FloorPlanWidth = 10,  // Smaller building
                 FloorPlanHeight = 8,
                 Desks = new List<Desk>
                 {
-                    // Small quiet office
-                    new Desk { Id = 201, Description = "Focus desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 202, Description = "Focus desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 203, Description = "Focus desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 204, Description = "Work desk 1", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 205, Description = "Work desk 2", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    // Focus pods
+                    new Desk { Id = 201, DeskNumber = "TH-1", Description = "Focus pod - Soundproof booth", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 202, DeskNumber = "TH-2", Description = "Focus pod - Private workspace", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2, IsInMaintenance = true, MaintenanceReason = "Soundproofing panel repair" },
+                    new Desk { Id = 203, DeskNumber = "TH-3", Description = "Focus pod - Deep work station", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
 
-                    // Small conference room
-                    new Desk { Id = 250, Description = "Small Meeting Room", PositionX = 6, PositionY = 2, Type = DeskType.ConferenceRoom, BuildingId = 2 },
+                    // Open workspace
+                    new Desk { Id = 204, DeskNumber = "TH-4", Description = "Open desk - Garden view", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 205, DeskNumber = "TH-5", Description = "Open desk - Collaborative space", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 206, DeskNumber = "TH-6", Description = "Standing desk - Adjustable height", PositionX = 3, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2, IsInMaintenance = true, MaintenanceReason = "Height adjustment mechanism jammed - Parts ordered" },
+                    new Desk { Id = 207, DeskNumber = "TH-7", Description = "Hot desk - Near lounge area", PositionX = 1, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 208, DeskNumber = "TH-8", Description = "Hot desk - Window seat", PositionX = 2, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 2 },
+
+                    // Conference rooms
+                    new Desk { Id = 250, DeskNumber = "TH-CR1", Description = "Innovation Lab - Whiteboard walls", PositionX = 6, PositionY = 2, Type = DeskType.ConferenceRoom, BuildingId = 2 },
+                    new Desk { Id = 251, DeskNumber = "TH-CR2", Description = "Video Call Room - Zoom ready", PositionX = 6, PositionY = 5, Type = DeskType.ConferenceRoom, BuildingId = 2 },
                 }
             }
         };
@@ -87,36 +107,30 @@ public static class DatabaseSeeder
         {
             if (building.Id == 1) // Main Office
             {
-                // Monday-Friday: 7 AM - 7 PM
+                // Monday-Friday:
                 for (int day = 1; day <= 5; day++)  // 1=Monday, 5=Friday
                 {
                     hours.Add(new OperatingHours
                     {
                         BuildingId = building.Id,
                         DayOfWeek = (DayOfWeek)day,
-                        OpeningTime = new TimeOnly(7, 0),
-                        ClosingTime = new TimeOnly(19, 0),
                         IsClosed = false
                     });
                 }
 
-                // Saturday: 8 AM - 2 PM (half day)
+                // Saturday:
                 hours.Add(new OperatingHours
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Saturday,
-                    OpeningTime = new TimeOnly(8, 0),
-                    ClosingTime = new TimeOnly(14, 0),
                     IsClosed = false
                 });
 
-                // Sunday: Closed
+                // Sunday:
                 hours.Add(new OperatingHours
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Sunday,
-                    OpeningTime = new TimeOnly(0, 0),
-                    ClosingTime = new TimeOnly(0, 0),
                     IsClosed = true
                 });
             }
@@ -129,8 +143,6 @@ public static class DatabaseSeeder
                     {
                         BuildingId = building.Id,
                         DayOfWeek = (DayOfWeek)day,
-                        OpeningTime = new TimeOnly(8, 0),
-                        ClosingTime = new TimeOnly(18, 0),
                         IsClosed = false
                     });
                 }
@@ -140,8 +152,6 @@ public static class DatabaseSeeder
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Saturday,
-                    OpeningTime = new TimeOnly(0, 0),
-                    ClosingTime = new TimeOnly(0, 0),
                     IsClosed = true
                 });
 
@@ -149,8 +159,6 @@ public static class DatabaseSeeder
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Sunday,
-                    OpeningTime = new TimeOnly(0, 0),
-                    ClosingTime = new TimeOnly(0, 0),
                     IsClosed = true
                 });
             }
@@ -498,41 +506,78 @@ public static class DatabaseSeeder
     {
         return new List<User>
         {
-            new User { Id = "U1",
-             Name = "Admin",
-             Surname = "Manager",
-             Password = "SecurePassword123!",
-             Email = "admin@company.com",
-             Role = UserRole.Admin,
+            new User
+            {
+                Id = "U1",
+                Name = "Sarah",
+                Surname = "Johnson",
+                Password = "sarah123",
+                Email = "sarah@company.com",
+                Role = UserRole.Admin,
             },
-            new User { Id = "U2",
-             Name = "Sancho",
-             Surname = "Eaglesham",
-             Password = "seaglesham0",
-             Email = "seaglesham0@furl.net",
-             Role = UserRole.User
+            new User
+            {
+                Id = "U2",
+                Name = "Michael",
+                Surname = "Chen",
+                Password = "michael123",
+                Email = "michael@company.com",
+                Role = UserRole.User
             },
-            new User { Id = "U3",
-             Name = "Bengt",
-             Surname = "Servant",
-             Password = "bservant1",
-             Email = "bservant1@quantcast.com",
-             Role = UserRole.User
+            new User
+            {
+                Id = "U3",
+                Name = "Emily",
+                Surname = "Rodriguez",
+                Password = "EmilyR@2024",
+                Email = "emily.rodriguez@company.com",
+                Role = UserRole.User
             },
-            new User { Id = "U4",
-             Name = "Jayson",
-             Surname = "Tonnesen",
-             Password = "jtonnesen9",
-             Email = "jtonnesen9@shutterfly.com",
-             Role = UserRole.User
+            new User
+            {
+                Id = "U4",
+                Name = "James",
+                Surname = "Williams",
+                Password = "JamesW!2024",
+                Email = "james.williams@company.com",
+                Role = UserRole.User
             },
-            new User { Id = "U5",
-             Name = "Berta",
-             Surname = "Jerger",
-             Password = "bjerger7",
-             Email = "bjerger7@mozilla.org",
-             Role = UserRole.User
+            new User
+            {
+                Id = "U5",
+                Name = "Olivia",
+                Surname = "Martinez",
+                Password = "OliviaM@2024",
+                Email = "olivia.martinez@company.com",
+                Role = UserRole.User
             },
+            new User
+            {
+                Id = "U6",
+                Name = "David",
+                Surname = "Anderson",
+                Password = "DavidA#2024",
+                Email = "david.anderson@company.com",
+                Role = UserRole.User
+            },
+            new User
+            {
+                Id = "U7",
+                Name = "Sophia",
+                Surname = "Taylor",
+                Password = "SophiaT@2024",
+                Email = "sophia.taylor@company.com",
+                Role = UserRole.User
+            },
+            new User
+            {
+                Id = "U8",
+                Name = "Daniel",
+                Surname = "Brown",
+                Password = "DanielB!2024",
+                Email = "daniel.brown@company.com",
+                Role = UserRole.User
+            }
         };
     }
 }

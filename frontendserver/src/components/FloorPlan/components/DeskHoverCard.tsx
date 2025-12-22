@@ -35,12 +35,18 @@ const DeskHoverCard: React.FC<DeskHoverCardProps> = ({
     <foreignObject
       x={cardX}
       y={cardY}
-      width="280"
-      height="350"
+      width="1"
+      height="1"
       style={{ overflow: 'visible', pointerEvents: 'auto' }}
     >
-      <div className="card shadow" style={{ minWidth: '250px', pointerEvents: 'auto' }}>
-        <div className="card-body p-3">
+      <div
+        className="card shadow"
+        style={{
+          width: '280px',
+          pointerEvents: 'auto'
+        }}
+      >
+        <div className="card-body p-2" style={{ position: 'relative' }}>
           {/* Close button */}
           {onClose && (
             <button
@@ -60,7 +66,8 @@ const DeskHoverCard: React.FC<DeskHoverCardProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#6c757d'
+                color: '#6c757d',
+                zIndex: 1
               }}
               title="Close"
             >
@@ -69,26 +76,31 @@ const DeskHoverCard: React.FC<DeskHoverCardProps> = ({
           )}
 
           {/* Desk Name/Description */}
-          <h6 className="card-title fw-bold mb-2">
-            {desk.description || `Desk ${desk.id}`}
+          <h6 className="card-title fw-bold mb-1" style={{ paddingRight: '24px', fontSize: '0.95rem' }}>
+            #{desk.deskNumber}
           </h6>
+          {desk.description && (
+            <small className="text-muted d-block mb-1" style={{ fontSize: '0.8rem' }}>
+              {desk.description}
+            </small>
+          )}
 
           {/* Desk Details */}
-          <div className="mb-2">
-            <small className="text-muted d-block">
+          <div className="mb-1">
+            <small className="text-muted d-block" style={{ fontSize: '0.8rem' }}>
               <strong>Type:</strong> {getDeskTypeLabel(desk.type)}
             </small>
           </div>
 
           {/* Status Badge */}
-          <div className="mb-2">
-            <span className={`badge bg-${getStatusBadgeVariant(desk.status, desk.isReservedByCaller)}`}>
+          <div className="mb-0">
+            <span className={`badge bg-${getStatusBadgeVariant(desk.status, desk.isReservedByCaller)}`} style={{ fontSize: '0.7rem' }}>
               {getDeskStatusLabel(desk.status)}
             </span>
           </div>
 
           {/* Divider */}
-          <hr className="my-2" />
+          <hr style={{ margin: '0.25rem 0' }} />
 
           {/* Status-specific content */}
           <DeskStatusContent

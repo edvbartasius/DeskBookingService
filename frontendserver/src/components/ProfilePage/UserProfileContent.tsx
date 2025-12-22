@@ -1,4 +1,4 @@
-import { Card, Spinner, Alert, Button, Badge } from 'react-bootstrap';
+import { Card, Spinner, Alert, Button } from 'react-bootstrap';
 import { UserDto } from '../../types/reservation.types.ts';
 
 interface UserProfileContentProps {
@@ -40,35 +40,34 @@ const UserProfileContent = ({ user, loading, error, onRefresh }: UserProfileCont
     );
   }
 
-  const getRoleBadge = (role: number) => {
-    return role === 0 ? (
-      <Badge bg="danger">Admin</Badge>
-    ) : (
-      <Badge bg="primary">User</Badge>
-    );
+  const getRoleText = (role: number): string => {
+    return role === 0 ? "Admin" : "User";
   };
 
   return (
     <Card.Body>
-      <div className="mb-3">
-        <strong>Name:</strong>
-        <p className="ms-2 mb-0">{user.name || 'N/A'}</p>
+      <div className="mb-4">
+        <strong className="fs-4 fw-semibold">Name:</strong>
+        <span className="d-block fs-5 text-dark">{user.name || "N/A"}</span>
+        <div className="border-bottom border-1 border-dark my-2"></div>
       </div>
+
       <div className="mb-3">
-        <strong>Surname:</strong>
-        <p className="ms-2 mb-0">{user.surname || 'N/A'}</p>
+        <strong className="fs-4 fw-semibold">Surname:</strong>
+        <span className="d-block fs-5 text-dark">{user.surname || "N/A"}</span>
+        <div className="border-bottom border-1 border-dark my-2"></div>
       </div>
+
       <div className="mb-3">
-        <strong>Email:</strong>
-        <p className="ms-2 mb-0">{user.email || 'N/A'}</p>
+        <strong className="fs-4 fw-semibold">Email:</strong>
+        <span className="d-block fs-5 text-dark">{user.email || "N/A"}</span>
+        <div className="border-bottom border-1 border-dark my-2"></div>
       </div>
+
       <div className="mb-3">
-        <strong>Role:</strong>
-        <div className="ms-2">{getRoleBadge(user.role)}</div>
-      </div>
-      <div className="mb-3">
-        <strong>User ID:</strong>
-        <p className="ms-2 mb-0 text-muted small">{user.id || 'N/A'}</p>
+        <strong className="fs-4 fw-semibold">Role:</strong>
+        <span className="d-block fs-5 text-dark">{getRoleText(user.role)}</span>
+        <div className="border-bottom border-1 border-dark my-2"></div>
       </div>
     </Card.Body>
   );

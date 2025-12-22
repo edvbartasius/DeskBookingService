@@ -27,7 +27,6 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<AppDbContext>();
 
 // Register application services
-builder.Services.AddScoped<DeskAvailabilityService>();
 builder.Services.AddScoped<ReservationValidationService>();
 
 // Register background services (conditionally based on configuration)
@@ -66,7 +65,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins(frontendUrl)
+            policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -88,7 +87,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection(); // Disabled for local development with mobile devices
 
 // Enable CORS
 app.UseCors("AllowFrontend");

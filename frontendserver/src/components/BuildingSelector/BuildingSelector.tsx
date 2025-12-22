@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Form } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 import { Building } from '../../types/booking.types';
 
 interface BuildingSelectorProps {
@@ -22,9 +22,7 @@ export const BuildingSelector: React.FC<BuildingSelectorProps> = ({
   };
 
   return (
-    <Card>
-      <Card.Body>
-        <Form.Group>
+    <Form.Group>
           <Form.Label>Select Building</Form.Label>
           <Form.Select
             value={selectedBuilding?.id || ''}
@@ -45,7 +43,5 @@ export const BuildingSelector: React.FC<BuildingSelectorProps> = ({
             )}
           </Form.Select>
         </Form.Group>
-      </Card.Body>
-    </Card>
   );
 };

@@ -10,7 +10,7 @@ import AdminPage from './pages/AdminPage.tsx';
 function App() {
   return (
     <UserProvider>
-      <div className="min-hs-screen flex flex-col bg-grey-50">
+      <div className="min-hs-screen flex flex-col min-vh-100">
         <Navbar />
         <span className="flex-grow">
           <Routes>

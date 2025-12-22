@@ -8,7 +8,6 @@ export const useDropdownOptions = () => {
   const [desks, setDesks] = useState<Desk[]>([]);
 
   const fetchDropdownOptions = async () => {
-    // TODO: dropdown menus arent always populated when first selected & check the need to limit data in dropdown menus
     try {
       const [fetchedUsers, fetchedBuildings, fetchedDesks] = await Promise.all([
         DatabaseService.getUsers(),
@@ -18,8 +17,10 @@ export const useDropdownOptions = () => {
       setUsers(fetchedUsers);
       setBuildings(fetchedBuildings);
       setDesks(fetchedDesks);
+      return { users: fetchedUsers, buildings: fetchedBuildings, desks: fetchedDesks };
     } catch (err) {
       console.error('Failed to fetch dropdown options:', err);
+      return { users: [], buildings: [], desks: [] };
     }
   };
 

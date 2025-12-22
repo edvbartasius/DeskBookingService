@@ -3,6 +3,7 @@ namespace DeskBookingService.Models;
 public class Desk
 {
     public int Id { get; set; }
+    public string DeskNumber { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int BuildingId { get; set; } // Foreign key
     public Building? Building { get; set; } // Navigation property

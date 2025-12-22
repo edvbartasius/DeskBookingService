@@ -1,0 +1,54 @@
+Summary
+  Generated on: 12/22/2025 - 10:04:29 AM
+  Coverage date: 12/22/2025 - 9:42:58 AM - 12/22/2025 - 10:03:42 AM
+  Parser: MultiReport (3x Cobertura)
+  Assemblies: 1
+  Classes: 32
+  Files: 30
+  Line coverage: 42.7%
+  Covered lines: 895
+  Uncovered lines: 1201
+  Coverable lines: 2096
+  Total lines: 3258
+  Branch coverage: 36.6% (156 of 426)
+  Covered branches: 156
+  Total branches: 426
+  Method coverage: 74.2% (150 of 202)
+  Full method coverage: 54.4% (110 of 202)
+  Covered methods: 150
+  Fully covered methods: 110
+  Total methods: 202
+
+BackendServer                                                   42.7%
+  AppDbContext                                                  94.4%
+  DeskBookingService.Configurations.MapsterConfiguration           0%
+  DeskBookingService.Controllers.BuildingController             73.5%
+  DeskBookingService.Controllers.DeskController                 80.3%
+  DeskBookingService.Controllers.ReservationController          89.6%
+  DeskBookingService.Controllers.UserController                 79.3%
+  DeskBookingService.DatabaseSeeder.DatabaseSeeder                 0%
+  DeskBookingService.Models.Building                             100%
+  DeskBookingService.Models.Desk                                 100%
+  DeskBookingService.Models.DTOs.BuildingDto                     100%
+  DeskBookingService.Models.DTOs.BuildingListItemDto               0%
+  DeskBookingService.Models.DTOs.CreateReservationDTO            100%
+  DeskBookingService.Models.DTOs.DeskDto                         100%
+  DeskBookingService.Models.DTOs.FloorPlanDto                     75%
+  DeskBookingService.Models.DTOs.LoginDto                        100%
+  DeskBookingService.Models.DTOs.ReservationDto                  100%
+  DeskBookingService.Models.DTOs.UpdateReservationDto            100%
+  DeskBookingService.Models.DTOs.UserDto                         100%
+  DeskBookingService.Models.OperatingHours                         0%
+  DeskBookingService.Models.Reservation                          100%
+  DeskBookingService.Models.User                                 100%
+  DeskBookingService.Services.BackgroundJobOptions                 0%
+  DeskBookingService.Services.DailyReservationCleanupService       0%
+  DeskBookingService.Services.ReservationCleanupService            0%
+  DeskBookingService.Services.ReservationValidationService      94.2%
+  DeskBookingService.Services.Validators.BuildingValidator       100%
+  DeskBookingService.Services.Validators.DeskValidator           100%
+  DeskBookingService.Services.Validators.ReservationValidator    100%
+  DeskBookingService.Services.Validators.UserValidator           100%
+  Microsoft.AspNetCore.OpenApi.Generated                           0%
+  Program                                                          0%
+  System.Runtime.CompilerServices                                  0%

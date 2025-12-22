@@ -32,7 +32,7 @@ export const TableSelector: React.FC<TableSelectorProps> = ({
         {tableConfigs.map(config => (
           <Button
             key={config.name}
-            variant={selectedTable === config.name ? 'primary' : 'outline-primary'}
+            variant={selectedTable === config.name ? 'dark' : 'outline-dark'}
             onClick={() => onSelectTable(config.name)}
           >
             {config.displayName}

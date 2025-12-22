@@ -14,6 +14,8 @@ export const DeskCard: React.FC<DeskCardProps> = ({
   onReserveClick,
   onCancelClick
 }) => {
+  const [showOverlay, setShowOverlay] = React.useState(false);
+
   const handleReserveClick = () => {
     if (onReserveClick) {
       onReserveClick(desk);
@@ -25,23 +27,30 @@ export const DeskCard: React.FC<DeskCardProps> = ({
       onCancelClick(desk, cancelType);
     }
   };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // On mobile/touch devices, first click shows overlay
+    if (!showOverlay) {
+      e.stopPropagation();
+      setShowOverlay(true);
+    }
+  };
+
   return (
     <div style={{ position: 'relative' }}>
       <Card
         className="h-100"
         style={{ cursor: 'pointer', overflow: 'hidden', position: 'relative' }}
-        onMouseEnter={(e) => {
-          const overlay = e.currentTarget.querySelector('.desk-overlay') as HTMLElement;
-          if (overlay) overlay.style.display = 'flex';
-        }}
-        onMouseLeave={(e) => {
-          const overlay = e.currentTarget.querySelector('.desk-overlay') as HTMLElement;
-          if (overlay) overlay.style.display = 'none';
-        }}
+        onClick={handleCardClick}
+        onMouseEnter={() => setShowOverlay(true)}
+        onMouseLeave={() => setShowOverlay(false)}
       >
         <Card.Body>
           <div className="d-flex justify-content-between align-items-start mb-2">
-            <h5 className="mb-0">{desk.description}</h5>
+            <div>
+              <h5 className="mb-0 fw-bold">#{desk.deskNumber}</h5>
+              {desk.description && <small className="text-muted">{desk.description}</small>}
+            </div>
             <Badge bg={getStatusBadgeVariant(desk.status, desk.isReservedByCaller)}>
               {getDeskStatusLabel(desk.status)}
             </Badge>
@@ -61,17 +70,18 @@ export const DeskCard: React.FC<DeskCardProps> = ({
             right: 0,
             bottom: 0,
             backgroundColor: 'rgba(255, 255, 255, 0.98)',
-            display: 'none',
+            display: showOverlay ? 'flex' : 'none',
             flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
             padding: '1rem',
             borderRadius: '0.375rem',
-            pointerEvents: 'none',
+            pointerEvents: showOverlay ? 'auto' : 'none',
             zIndex: 10
           }}
         >
-          <h6 className="fw-bold mb-3">{desk.description || `Desk ${desk.id}`}</h6>
+          <h6 className="fw-bold mb-1">#{desk.deskNumber}</h6>
+          {desk.description && <small className="text-muted d-block mb-1">{desk.description}</small>}
           <DeskStatusContent
             desk={desk}
             variant="full"

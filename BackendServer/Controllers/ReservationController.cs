@@ -5,6 +5,7 @@ using DeskBookingService.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
+using System.Data.Common;
 
 namespace DeskBookingService.Controllers
 {
@@ -36,13 +37,21 @@ namespace DeskBookingService.Controllers
         [HttpGet]
         public async Task<IActionResult> GetReservations()
         {
-            var reservations = await _context.Reservations
+            try
+            {
+                var reservations = await _context.Reservations
                 .Include(r => r.User)
                 .Include(r => r.Desk)
                 .ToListAsync();
 
-            var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
-            return Ok(reservationDtos);
+                var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
+                return Ok(reservationDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+
         }
 
         /// <summary>
@@ -79,7 +88,6 @@ namespace DeskBookingService.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateReservation(int id, [FromBody] UpdateReservationDto reservationDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(reservationDto));
             try
             {
                 var reservation = await _context.Reservations.FindAsync(id);
@@ -113,10 +121,9 @@ namespace DeskBookingService.Controllers
         /// </summary>
         /// <param name="dto">Reservation creation data including user ID, desk ID, and dates</param>
         /// <returns>Success message with count of created reservations or error message</returns>
-        [HttpPost("create")]
+        [HttpPost("add")]
         public async Task<IActionResult> CreateReservation(CreateReservationDTO dto)
         {
-            Console.WriteLine("Received CreateReservation for ", dto.ReservationDates.Count, " reservations");
             // Validate user exists
             var user = await _context.Users.FindAsync(dto.UserId.ToString());
             if (user == null)
@@ -131,48 +138,22 @@ namespace DeskBookingService.Controllers
                 return BadRequest("Desk not found");
             }
 
+            // Unified date handling - works for single OR multiple dates
+            // To fix add call from DBViewer
+            var dates = dto.GetEffectiveDates();
+
+            if (dates.Count == 0)
+            {
+                return BadRequest("No dates provided");
+            }
+
             // Deduplicate dates first to avoid duplicate validation
-            var uniqueDates = dto.ReservationDates.Distinct().ToList();
-
-            // Validate booking size limit (max 7 reservations per booking)
-            var bookingSizeValidation = _validationService.ValidateBookingSize(uniqueDates.Count);
-            if (!bookingSizeValidation.IsValid)
-            {
-                return BadRequest(new { error = bookingSizeValidation.ErrorMessage });
-            }
-
-            // Validate user's active reservations limit (max 30 active reservations)
-            var activeReservationsValidation = await _validationService.ValidateUserActiveReservationsLimit(
-                dto.UserId.ToString(),
-                uniqueDates.Count
-            );
-            if (!activeReservationsValidation.IsValid)
-            {
-                return BadRequest(new { error = activeReservationsValidation.ErrorMessage });
-            }
-
-            // Validate all dates before creating any reservations (fail-fast)
-            foreach (var date in uniqueDates)
-            {
-                var validationResult = await _validationService.ValidateReservation(
-                    dto.DeskId,
-                    date
-                );
-
-                if (!validationResult.IsValid)
-                {
-                    return BadRequest(new
-                    {
-                        error = validationResult.ErrorMessage,
-                        failedDate = date.ToString("yyyy-MM-dd")
-                    });
-                }
-            }
+            var uniqueDates = dates.Distinct().ToList();
 
             // Generate a unique booking group ID for this reservation batch
             var ReservationGroupId = Guid.NewGuid();
 
-            // Create all reservations at once
+            // Create all reservations and validate each one
             var reservations = uniqueDates.Select(date => new Reservation
             {
                 UserId = dto.UserId.ToString(),
@@ -182,6 +163,33 @@ namespace DeskBookingService.Controllers
                 ReservationGroupId = ReservationGroupId,
                 CreatedAt = DateTime.UtcNow
             }).ToList();
+
+            // Check if reservations exceed one booking size limit
+            var bookingSizeValidation = _validationService.ValidateBookingSize(reservations.Count);
+            if (!bookingSizeValidation.IsValid)
+            {
+                return BadRequest(bookingSizeValidation.ErrorMessage);
+            }
+            // Check if reservations exceed user's active reservations limit
+            var userActiveReservationsValidation = await _validationService.ValidateUserActiveReservationsLimit(dto.UserId.ToString(), reservations.Count);
+            if (!userActiveReservationsValidation.IsValid)
+            {
+                return BadRequest(userActiveReservationsValidation.ErrorMessage);
+            }
+
+            // Validate all reservations before creating any (fail-fast)
+            foreach (var reservation in reservations)
+            {
+                var validationResult = await _validator.ValidateAsync(reservation);
+                if (!validationResult.IsValid)
+                {
+                    return BadRequest(new
+                    {
+                        error = string.Join(", ", validationResult.Errors.Select(e => e.ErrorMessage)),
+                        failedDate = reservation.ReservationDate.ToString("yyyy-MM-dd")
+                    });
+                }
+            }
 
             try
             {
@@ -209,20 +217,21 @@ namespace DeskBookingService.Controllers
         [HttpGet("desk/{deskId}")]
         public async Task<IActionResult> GetDeskReservations(int deskId)
         {
-            var reservations = await _context.Reservations
-                .Where(r => r.DeskId == deskId && r.Status == ReservationStatus.Active)
-                .OrderBy(r => r.ReservationDate)
-                .ToListAsync();
-
-            // Return only the reservation dates
-            var reservationDates = reservations.Select(r => r.ReservationDate).ToList();
-            // Log reservation dates to the console
-            Console.WriteLine($"Desk {deskId} reservation dates:");
-            foreach (var date in reservationDates)
+            try
             {
-                Console.WriteLine(date.ToString("yyyy-MM-dd"));
+                var reservations = await _context.Reservations
+                    .Where(r => r.DeskId == deskId && r.Status == ReservationStatus.Active)
+                    .OrderBy(r => r.ReservationDate)
+                    .ToListAsync();
+
+                // Return only the reservation dates
+                var reservationDates = reservations.Select(r => r.ReservationDate).ToList();
+                return Ok(reservationDates);
             }
-            return Ok(reservationDates);
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -233,21 +242,28 @@ namespace DeskBookingService.Controllers
         [HttpGet("my-reservations/{userId}")]
         public async Task<IActionResult> GetUserReservations(string userId)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            try
             {
-                return BadRequest("User not found");
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                {
+                    return BadRequest("User not found");
+                }
+
+                var reservations = await _context.Reservations
+                    .Where(r => r.UserId == userId && r.Status == ReservationStatus.Active)
+                    .Include(r => r.Desk)
+                        .ThenInclude(d => d!.Building)
+                    .OrderBy(r => r.ReservationDate)
+                    .ToListAsync();
+
+                var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
+                return Ok(reservationDtos);
             }
-
-            var reservations = await _context.Reservations
-                .Where(r => r.UserId == userId && r.Status == ReservationStatus.Active)
-                .Include(r => r.Desk)
-                    .ThenInclude(d => d!.Building)
-                .OrderBy(r => r.ReservationDate)
-                .ToListAsync();
-
-            var reservationDtos = _mapper.Map<List<ReservationDto>>(reservations);
-            return Ok(reservationDtos);
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -258,47 +274,54 @@ namespace DeskBookingService.Controllers
         [HttpGet("my-reservations/grouped/{userId}")]
         public async Task<IActionResult> GetUserReservationsGrouped(string userId)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            try
             {
-                return BadRequest("User not found");
-            }
-
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-            var reservations = await _context.Reservations
-                .Where(r => r.UserId == userId &&
-                           r.Status == ReservationStatus.Active &&
-                           r.ReservationDate >= today) // Only upcoming reservations
-                .Include(r => r.Desk)
-                    .ThenInclude(d => d!.Building)
-                .OrderByDescending(r => r.CreatedAt)
-                .ToListAsync();
-
-            // Group by ReservationGroupId
-            var groupedReservations = reservations
-                .GroupBy(r => r.ReservationGroupId)
-                .Select(g => new
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
                 {
-                    ReservationGroupId = g.Key,
-                    createdAt = g.First().CreatedAt,
-                    deskId = g.First().DeskId,
-                    deskDescription = g.First().Desk?.Description,
-                    buildingName = g.First().Desk?.Building?.Name,
-                    reservationCount = g.Count(),
-                    dates = g.OrderBy(r => r.ReservationDate)
-                             .Select(r => r.ReservationDate)
-                             .ToList(),
-                    reservations = _mapper.Map<List<ReservationDto>>(g.OrderBy(r => r.ReservationDate).ToList()),
-                    // Business logic: Check if any date is today
-                    hasToday = g.Any(r => r.ReservationDate == today),
-                    // Business logic: Days until first reservation
-                    daysUntilFirst = g.Min(r => r.ReservationDate).DayNumber - today.DayNumber
-                })
-                .OrderBy(g => g.daysUntilFirst) // Sort by nearest first
-                .ToList();
+                    return BadRequest("User not found");
+                }
 
-            return Ok(groupedReservations);
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+                var reservations = await _context.Reservations
+                    .Where(r => r.UserId == userId &&
+                               r.Status == ReservationStatus.Active &&
+                               r.ReservationDate >= today) // Only upcoming reservations
+                    .Include(r => r.Desk)
+                        .ThenInclude(d => d!.Building)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .ToListAsync();
+
+                // Group by ReservationGroupId
+                var groupedReservations = reservations
+                    .GroupBy(r => r.ReservationGroupId)
+                    .Select(g => new
+                    {
+                        ReservationGroupId = g.Key,
+                        createdAt = g.First().CreatedAt,
+                        deskId = g.First().DeskId,
+                        deskDescription = g.First().Desk?.Description,
+                        buildingName = g.First().Desk?.Building?.Name,
+                        reservationCount = g.Count(),
+                        dates = g.OrderBy(r => r.ReservationDate)
+                                 .Select(r => r.ReservationDate)
+                                 .ToList(),
+                        reservations = _mapper.Map<List<ReservationDto>>(g.OrderBy(r => r.ReservationDate).ToList()),
+                        // Check if any date is today
+                        hasToday = g.Any(r => r.ReservationDate == today),
+                        // Days until first reservation
+                        daysUntilFirst = g.Min(r => r.ReservationDate).DayNumber - today.DayNumber
+                    })
+                    .OrderBy(g => g.daysUntilFirst) // Sort by nearest first
+                    .ToList();
+
+                return Ok(groupedReservations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -309,39 +332,47 @@ namespace DeskBookingService.Controllers
         [HttpGet("my-reservations/history/{userId}")]
         public async Task<IActionResult> GetUserReservationHistory(string userId)
         {
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
+            try
             {
-                return BadRequest("User not found");
-            }
-
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-            var reservations = await _context.Reservations
-                .Where(r => r.UserId == userId &&
-                    (r.Status == ReservationStatus.Cancelled || r.ReservationDate < today))
-                .Include(r => r.Desk)
-                    .ThenInclude(d => d!.Building)
-                .OrderByDescending(r => r.ReservationDate)
-                .ToListAsync();
-
-            // Map to DTOs and add business logic for effective status
-            var reservationDtos = reservations.Select(r =>
-            {
-                var dto = _mapper.Map<ReservationDto>(r);
-
-                // Business logic: Determine effective status
-                // If cancelled, keep as cancelled
-                // If date has passed and not cancelled, mark as completed
-                if (r.Status != ReservationStatus.Cancelled && r.ReservationDate < today)
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
                 {
-                    dto.Status = ReservationStatus.Completed;
+                    return BadRequest("User not found");
                 }
 
-                return dto;
-            }).ToList();
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-            return Ok(reservationDtos);
+                var reservations = await _context.Reservations
+                    .Where(r => r.UserId == userId &&
+                        (r.Status == ReservationStatus.Cancelled || r.ReservationDate < today))
+                    .Include(r => r.Desk)
+                        .ThenInclude(d => d!.Building)
+                    .OrderByDescending(r => r.ReservationDate)
+                    .ToListAsync();
+
+                // Map to DTOs and add business logic for effective status
+                var reservationDtos = reservations.Select(r =>
+                {
+                    var dto = _mapper.Map<ReservationDto>(r);
+
+                    // Business logic: Determine effective status
+                    // If cancelled, keep as cancelled
+                    // If date has passed and not cancelled, mark as completed
+                    if (r.Status != ReservationStatus.Cancelled && r.ReservationDate < today)
+                    {
+                        dto.Status = ReservationStatus.Completed;
+                    }
+
+                    return dto;
+                }).ToList();
+
+                return Ok(reservationDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+
         }
         /// <summary>
         /// Cancels a single reservation for a specific desk and date
@@ -455,7 +486,10 @@ namespace DeskBookingService.Controllers
 
                 // Find the reservation entry for the given desk and date
                 var reservation = await _context.Reservations
-                    .Where(r => r.DeskId == deskId && r.ReservationDate == date && r.UserId == userId)
+                    .Where(r => r.DeskId == deskId
+                        && r.ReservationDate == date
+                        && r.UserId == userId
+                        && r.Status == ReservationStatus.Active)
                     .FirstOrDefaultAsync();
 
                 if (reservation == null)

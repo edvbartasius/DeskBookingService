@@ -34,6 +34,7 @@ export interface Building {
 
 export interface Desk {
     id: number;
+    deskNumber: string;
     description?: string | null;
     status: DeskStatus;
     buildingId: number;

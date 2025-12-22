@@ -55,6 +55,9 @@ export const useFloorPlanPan = ({ viewBox, setViewBox, containerSize }: UseFloor
       if (e.touches.length === 1) {
         setIsPanning(true);
         setPanStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+      } else if (e.touches.length === 2) {
+        // Two fingers detected - stop panning to allow pinch zoom
+        setIsPanning(false);
       }
     },
     []
@@ -62,6 +65,12 @@ export const useFloorPlanPan = ({ viewBox, setViewBox, containerSize }: UseFloor
 
   const handleTouchMove = useCallback(
     (e: React.TouchEvent<SVGSVGElement>) => {
+      if (e.touches.length === 2) {
+        // Two fingers - stop panning to allow pinch zoom
+        setIsPanning(false);
+        return;
+      }
+
       if (isPanning && e.touches.length === 1) {
         const dx = (e.touches[0].clientX - panStart.x) * (viewBox.width / containerSize.width);
         const dy = (e.touches[0].clientY - panStart.y) * (viewBox.height / containerSize.height);
@@ -78,6 +87,10 @@ export const useFloorPlanPan = ({ viewBox, setViewBox, containerSize }: UseFloor
     [isPanning, panStart, viewBox, containerSize, setViewBox]
   );
 
+  const handleTouchEnd = useCallback(() => {
+    setIsPanning(false);
+  }, []);
+
   return {
     isPanning,
     handleMouseDown,
@@ -85,6 +98,7 @@ export const useFloorPlanPan = ({ viewBox, setViewBox, containerSize }: UseFloor
     handleMouseUp,
     handleMouseLeave,
     handleTouchStart,
-    handleTouchMove
+    handleTouchMove,
+    handleTouchEnd
   };
 };

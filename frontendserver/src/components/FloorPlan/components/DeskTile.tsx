@@ -66,8 +66,6 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, onHover, isSelected,
     }
   };
 
-
-
   return (
     <g
       transform={`translate(${pixelPosition.x}, ${pixelPosition.y})`}
@@ -116,23 +114,23 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, onHover, isSelected,
         </rect>
       )}
 
-      {/* Desk ID/Label
+      {/* Desk Number Label */}
       <text
         x={width / 2}
         y={height / 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fill="white"
+        fill="#333"
         fontSize="12"
         fontWeight="600"
         pointerEvents="none"
         style={{
           userSelect: 'none',
-          textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+          textShadow: '0 1px 2px rgba(255,255,255,0.8)'
         }}
       >
-        {desk.description || `D${desk.id}`}
-      </text> */}
+        #{desk.deskNumber}
+      </text>
     </g>
   );
 };

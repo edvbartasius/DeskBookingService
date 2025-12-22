@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import DeskTile from './DeskTile.tsx';
 import DeskHoverCard from './DeskHoverCard.tsx';
-import { DeskDto, DeskStatus, FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
+import { DeskDto, FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
 import { useFloorPlanZoom } from '../hooks/useFloorPlanZoom.ts';
 import { useFloorPlanPan } from '../hooks/useFloorPlanPan.ts';
 import { useContainerSize } from '../hooks/useContainerSize.ts';
@@ -18,7 +18,6 @@ import {
 const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   floorPlan,
   onDeskClick,
-  selectedDeskId,
   onCancelClick
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -46,7 +45,8 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     handleMouseUp,
     handleMouseLeave,
     handleTouchStart,
-    handleTouchMove
+    handleTouchMove,
+    handleTouchEnd
   } = useFloorPlanPan({ viewBox, setViewBox, containerSize });
 
   // Initialize viewBox based on floor plan dimensions (in pixels)
@@ -98,6 +98,7 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
   useEffect(() => {
     fitToContainer();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorPlan, containerSize]);
 
   if (!floorPlan) {
@@ -247,7 +248,7 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         onMouseLeave={handleMouseLeave}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        onTouchEnd={handleMouseUp}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Grid background */}
         <defs>

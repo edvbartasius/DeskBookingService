@@ -28,8 +28,10 @@ public class ReservationValidator : AbstractValidator<Reservation>
 
         RuleFor(r => r.ReservationDate)
             .NotEmpty().WithMessage("Reservation date is required")
-            .GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.Today))
-            .WithMessage("Reservation date cannot be in the past");
+            .Must(date => date >= DateOnly.FromDateTime(DateTime.Today))
+            .WithMessage("Reservation date cannot be in the past")
+            .Must(date => date <= DateOnly.FromDateTime(DateTime.Today.AddDays(60)))
+            .WithMessage("Reservations cannot be made more than 60 days in advance");
 
         // Check for conflicting reservations (make sure desk is not booked)
         RuleFor(r => r)

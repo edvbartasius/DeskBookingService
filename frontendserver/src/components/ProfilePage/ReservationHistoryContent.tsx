@@ -9,11 +9,11 @@ interface ReservationHistoryContentProps {
   onRefresh: () => void;
 }
 
-const ReservationHistoryContent = ({ 
-  history, 
-  loading, 
+const ReservationHistoryContent = ({
+  history,
+  loading,
   error,
-  onRefresh 
+  onRefresh
 }: ReservationHistoryContentProps) => {
 
   const formatDate = (dateString: string) => {
@@ -28,16 +28,16 @@ const ReservationHistoryContent = ({
     // Backend already provides the effective status
     switch (status) {
       case ReservationStatus.Cancelled:
-        return <Badge bg="danger">Cancelled</Badge>;
+        return <Badge bg="danger ms-2 align-text-bottom">Cancelled</Badge>;
       case ReservationStatus.Completed:
-        return <Badge bg="success">Completed</Badge>;
+        return <Badge bg="success ms-2 align-text-bottom">Completed</Badge>;
       case ReservationStatus.Active:
-        return <Badge bg="primary">Active</Badge>;
+        return <Badge bg="primary ms-2 align-text-bottom">Active</Badge>;
       default:
-        return <Badge bg="secondary">Unknown</Badge>;
+        return <Badge bg="secondary ms-2 align-text-bottom">Unknown</Badge>;
     }
   };
-
+//ms-2 align-text-bottom
   if (loading) {
     return (
       <Card.Body className="text-center py-5">
@@ -74,22 +74,32 @@ const ReservationHistoryContent = ({
     <Card.Body>
       <ListGroup variant="flush">
         {history.map((reservation) => (
-          <ListGroup.Item key={reservation.id} className="px-0">
-            <div className="d-flex justify-content-between align-items-start">
+          <ListGroup.Item key={reservation.id} className="px-0 py-3 border-bottom">
+            <div className="d-flex justify-content-between align-items-start gap-4">
+              {/* Left: Main info */}
               <div className="flex-grow-1">
-                <h6 className="mb-1">
+                {/* Desk title */}
+                <h6 className="mb-2 fs-5 fw-semibold">
                   {reservation.desk?.description || `Desk ${reservation.deskId}`}
-                  <span className="ms-2">{getStatusBadge(reservation.status)}</span>
                 </h6>
-                <p className="mb-1 small">
-                  <i className="bi bi-calendar me-1"></i>
+
+                {/* Date with icon */}
+                <p className="mb-1 fs-6 text-muted">
+                  {/* <i className="bi bi-calendar me-2 text-primary"></i> */}
                   {formatDate(reservation.reservationDate)}
                 </p>
+
+                {/* Cancelled info */}
                 {reservation.canceledAt && (
-                  <p className="mb-0 text-muted small">
-                    Cancelled: {format(parseISO(reservation.canceledAt), 'MMM dd, yyyy HH:mm')}
+                  <p className="mb-0 fs-6 text-muted">
+                    Cancelled on {format(parseISO(reservation.canceledAt), 'MMM dd, yyyy HH:mm')}
                   </p>
                 )}
+              </div>
+
+              {/* Right: Status badge */}
+              <div className="flex-shrink-0">
+                {getStatusBadge(reservation.status)}
               </div>
             </div>
           </ListGroup.Item>

@@ -4,7 +4,7 @@ import {
   DeskDto,
   FloorPlanCanvas
 } from "../components/FloorPlan/index.tsx";
-import { Container, Row, Col, Card } from "react-bootstrap";
+import { Container, Row, Col, Card, ButtonGroup, Button, Modal } from "react-bootstrap";
 import { DateSelector, useDeskAvailability, useOfficeClosedDates } from "../components/DateSelector/index.tsx";
 import { startOfDay, addDays } from "date-fns";
 import { Building } from "../types/booking.types.tsx";
@@ -13,6 +13,10 @@ import { useUser } from "../contexts/UserContext.tsx";
 import { BuildingSelector } from "../components/BuildingSelector/index.tsx";
 import { DeskListView } from "../components/DeskListView/index.tsx";
 import { ReservationConfirmModal } from "../components/ReservationConfirmModal/index.tsx";
+import ConfirmationModal from "../components/ConfirmationModal.tsx";
+import LoginModal from "../components/LoginModal.tsx";
+import RegisterModal from "../components/RegisterModal.tsx";
+import "../styles/DeskPage.css";
 
 // Helper function to format Date to YYYY-MM-DD in local timezone
 const formatDateLocal = (date: Date): string => {
@@ -22,6 +26,8 @@ const formatDateLocal = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+type ViewMode = 'list' | 'floorplan';
+
 const DeskPage = () => {
   const { loggedInUser } = useUser();
   const [buildings, setBuildings] = useState<Building[]>([]);
@@ -29,6 +35,12 @@ const DeskPage = () => {
   const [floorPlan, setFloorPlan] = useState<FloorPlanDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingDesks, setLoadingDesks] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+
+  // Login/Register modal state
+  const [showAuthPromptModal, setShowAuthPromptModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
 
   // Single-date reservation state
   const today = startOfDay(new Date());
@@ -42,16 +54,23 @@ const DeskPage = () => {
   const [isReservationLoading, setIsReservationLoading] = useState(false);
   const [reservationError, setReservationError] = useState<string | null>(null);
 
+  // Cancellation confirmation modal state
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [pendingCancellation, setPendingCancellation] = useState<{
+    desk: DeskDto;
+    cancelType: 'single' | 'range';
+  } | null>(null);
+
   // Fetch office closed dates
   const { closedDates, loading: loadingClosedDates } = useOfficeClosedDates(selectedBuilding?.id);
-  const { bookedDates, loading: loadingBookedDates } = useDeskAvailability(deskToReserve?.id);
+  const { bookedDates } = useDeskAvailability(deskToReserve?.id);
 
   // Fetch buildings on mount
   useEffect(() => {
     const fetchBuildings = async () => {
       try {
         const response = await api.get('buildings/get-buildings');
-        if (response.status === 200){
+        if (response.status === 200) {
           setBuildings(response.data);
         }
       } catch (error: any) {
@@ -80,7 +99,7 @@ const DeskPage = () => {
 
       try {
         const response = await api.get(url);
-        if (response.status === 200){
+        if (response.status === 200) {
           setFloorPlan(response.data);
         }
       } catch (error: any) {
@@ -94,6 +113,12 @@ const DeskPage = () => {
   }, [selectedBuilding, selectedDate, loggedInUser?.id]);
 
   const handleReserveClick = (desk: DeskDto) => {
+    // Check if user is logged in
+    if (!loggedInUser) {
+      setShowAuthPromptModal(true);
+      return;
+    }
+
     setDeskToReserve(desk);
     setIsReservationSuccess(false);
     setReservationError(null);
@@ -116,8 +141,7 @@ const DeskPage = () => {
         reservationDates: selectedDates.map(formatDateLocal)
       };
 
-      console.log("Booking request:", bookingRequest);
-      const url = `reservations/create`;
+      const url = `reservations/add`;
       const response = await api.post(url, bookingRequest);
 
       if (response.status === 200) {
@@ -154,14 +178,15 @@ const DeskPage = () => {
     setReservationError(null);
   };
 
-  const handleCancelReservation = async (desk: DeskDto, cancelType: 'single' | 'range') => {
-    const confirmMessage = cancelType === 'single'
-      ? `Are you sure you want to cancel your reservation for ${desk.description || `Desk ${desk.id}`} on ${selectedDate?.toLocaleDateString()}?`
-      : `Are you sure you want to cancel ALL dates for your reservation at ${desk.description || `Desk ${desk.id}`}?`;
+  const handleCancelReservation = (desk: DeskDto, cancelType: 'single' | 'range') => {
+    setPendingCancellation({ desk, cancelType });
+    setShowCancelModal(true);
+  };
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+  const handleConfirmCancellation = async () => {
+    if (!pendingCancellation) return;
+
+    const { desk, cancelType } = pendingCancellation;
 
     try {
       let response;
@@ -172,7 +197,7 @@ const DeskPage = () => {
         response = await api.patch(url);
       } else {
         const dateStr = selectedDate ? formatDateLocal(selectedDate) : '';
-        const url = `/reservations/my-reservations/cancel-booking-group/${desk.id}/${dateStr}/${loggedInUser?.id}`;
+        const url = `/reservations/my-reservations/cancel-booking-group-by-desk/${desk.id}/${dateStr}/${loggedInUser?.id}`;
         response = await api.patch(url);
       }
 
@@ -192,6 +217,8 @@ const DeskPage = () => {
       // Extract error message from backend response
       const errorMessage = error.response?.data?.error || error.response?.data || error.message || 'Failed to cancel reservation. Please try again.';
       alert(`Error: ${errorMessage}`);
+    } finally {
+      setPendingCancellation(null);
     }
   };
 
@@ -200,96 +227,151 @@ const DeskPage = () => {
     setDeskToReserve(null);
   };
 
+  // Calculate desk statistics
+  const getDeskStats = () => {
+    if (!floorPlan || !floorPlan.floorPlanDesks) {
+      return { total: 0, available: 0, myReservations: 0 };
+    }
+
+    const total = floorPlan.floorPlanDesks.length;
+    const available = floorPlan.floorPlanDesks.filter(desk => desk.status === 0).length; // DeskStatus.Available
+    const myReservations = floorPlan.floorPlanDesks.filter(desk => desk.isReservedByCaller).length;
+
+    return { total, available, myReservations };
+  };
+
+  const deskStats = getDeskStats();
   return (
-    <Container fluid className="py-4">
-      {/* Header */}
-      <Row className="mb-4">
-        <Col>
-          <h1>Desk Booking</h1>
-        </Col>
-      </Row>
+    <Container className="py-2">
+      <h1 className="text-start mb-4 pt-2 fw-bold">Desk Booking</h1>
+      <Card className="desk-page-card">
+        <Card.Body className="p-4">
+          <Row className="mb-4">
+            <Col>
+                <Row className="g-4 align-items-end">
+                    {/* Left: Building Selector */}
+                    <Col md={6}>
+                      <BuildingSelector
+                        buildings={buildings}
+                        selectedBuilding={selectedBuilding}
+                        onBuildingChange={handleBuildingChange}
+                        loading={loading}
+                      />
+                    </Col>
 
-      {/* Building Selector */}
-      <Row className="mb-3">
-        <Col>
-          <BuildingSelector
-            buildings={buildings}
-            selectedBuilding={selectedBuilding}
-            onBuildingChange={handleBuildingChange}
-            loading={loading}
-          />
-        </Col>
-      </Row>
-
-      {/* Date Selector - Full Width */}
-      {selectedBuilding && (
-        <Row className="mb-3">
-          <Col>
-            <Card>
-              <Card.Body>
-                <DateSelector
-                  selectedDate={selectedDate}
-                  onSelectedDateChange={setSelectedDate}
-                  closedDates={closedDates}
-                  bookedDates={[]}
-                  disabled={loading || loadingDesks || loadingClosedDates}
-                />
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      )}
-
-      {/* Main Content - Floor Plan and Desk List Side by Side */}
-      {selectedBuilding && (
-        <Row>
-          {/* Floor Plan Canvas - Left Side */}
-          <Col lg={7} className="mb-3">
-            <Card style={{ height: '70vh' }}>
-              <Card.Header>
-                <h5 className="mb-0">Floor Plan</h5>
-              </Card.Header>
-              <Card.Body className="p-0" style={{ height: 'calc(70vh - 60px)' }}>
-                {floorPlan ? (
-                  <FloorPlanCanvas
-                    floorPlan={floorPlan}
-                    onDeskClick={handleReserveClick}
-                    onCancelClick={handleCancelReservation}
-                    selectedDeskId={deskToReserve?.id}
-                  />
-                ) : (
-                  <div className="d-flex justify-content-center align-items-center h-100">
-                    {loadingDesks ? (
-                      <div className="spinner-border text-primary" role="status">
-                        <span className="visually-hidden">Loading floor plan...</span>
-                      </div>
-                    ) : (
-                      <p className="text-muted">Select a date to view the floor plan</p>
+                    {/* Right: Date Selector (only show when building is selected) */}
+                    {selectedBuilding && (
+                      <Col md={6}>
+                        <DateSelector
+                          selectedDate={selectedDate}
+                          onSelectedDateChange={setSelectedDate}
+                          closedDates={closedDates}
+                          bookedDates={[]}
+                          disabled={loading || loadingDesks || loadingClosedDates}
+                        />
+                      </Col>
                     )}
+                  </Row>
+            </Col>
+          </Row>
+
+          {/* Desk Stats */}
+          {selectedBuilding && selectedDate && (
+            <Row className="mb-3 align-items-center">
+              <Col md={6} className="text-start">
+                {!loadingDesks && (
+                  <div className="desk-stats-summary">
+                    <span className="badge bg-success me-2">
+                      <i className="bi bi-check-circle me-1"></i>
+                      {deskStats.available} Available
+                    </span>
+                    <span className="badge bg-primary me-2">
+                      <i className="bi bi-person-check me-1"></i>
+                      {deskStats.myReservations} Mine
+                    </span>
+                    <span className="badge bg-secondary">
+                      <i className="bi bi-grid-3x3 me-1"></i>
+                      {deskStats.total} Total
+                    </span>
                   </div>
                 )}
-              </Card.Body>
-            </Card>
-          </Col>
+              </Col>
+              <Col md={6} className="text-start">
+                <Row className="mb-3">
+                <Col className="d-flex justify-content-end">
+                  <ButtonGroup className="desk-page-view-toggle">
+                    <Button
+                      variant={viewMode === 'list' ? 'dark' : 'outline-dark'}
+                      onClick={() => setViewMode('list')}
+                      title="List View"
+                    >
+                      <i className="bi bi-list-ul me-2"></i>
+                      List
+                    </Button>
+                    <Button
+                      variant={viewMode === 'floorplan' ? 'dark' : 'outline-dark'}
+                      onClick={() => setViewMode('floorplan')}
+                      title="Floor Plan View"
+                    >
+                      <i className="bi bi-map me-2"></i>
+                      Floor Plan
+                    </Button>
+                  </ButtonGroup>
+                </Col>
+              </Row>
+              </Col>
+            </Row>
+          )}
 
-          {/* Desk List View - Right Side */}
-          <Col lg={5} className="mb-3">
-            <Card style={{ height: '70vh' }}>
-              <Card.Header>
-                <h5 className="mb-0">Available Desks</h5>
-              </Card.Header>
-              <Card.Body className="p-3" style={{ maxHeight: 'calc(70vh - 60px)', overflowY: 'auto' }}>
-                <DeskListView
-                  floorPlan={floorPlan}
-                  onReserveClick={handleReserveClick}
-                  onCancelClick={handleCancelReservation}
-                  loading={loadingDesks}
-                />
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      )}
+          {/* Main Content - View Toggle and Desk Selection */}
+          {selectedBuilding && selectedDate && (
+            <>
+              {/* Desk Selection Section - No Card Borders */}
+              <Row>
+                <Col lg={12}>
+                  {viewMode === 'floorplan' ? (
+                    <div style={{ height: '70vh' }}>
+                      {floorPlan ? (
+                        <FloorPlanCanvas
+                          floorPlan={floorPlan}
+                          onDeskClick={handleReserveClick}
+                          onCancelClick={handleCancelReservation}
+                          selectedDeskId={deskToReserve?.id}
+                        />
+                      ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                          {loadingDesks ? (
+                            <div className="text-center">
+                              <div className="spinner-border text-primary mb-3" role="status">
+                                <span className="visually-hidden">Loading floor plan...</span>
+                              </div>
+                              <p className="text-muted">Loading floor plan...</p>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <i className="bi bi-calendar-check"></i>
+                              <p className="text-muted">Select a date to view the floor plan</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div style={{ height: '70vh', overflowY: 'auto' }}>
+                      <DeskListView
+                        floorPlan={floorPlan}
+                        onReserveClick={handleReserveClick}
+                        onCancelClick={handleCancelReservation}
+                        loading={loadingDesks}
+                      />
+                    </div>
+                  )}
+                </Col>
+              </Row>
+            </>
+          )}
+        </Card.Body>
+      </Card>
 
       {/* Reservation Confirmation Modal */}
       <ReservationConfirmModal
@@ -303,6 +385,75 @@ const DeskPage = () => {
         bookedDates={bookedDates}
         closedDates={closedDates}
         initialDate={selectedDate}
+      />
+
+      {/* Cancellation Confirmation Modal */}
+      <ConfirmationModal
+        show={showCancelModal}
+        onHide={() => setShowCancelModal(false)}
+        onConfirm={handleConfirmCancellation}
+        title="Cancel Reservation"
+        message={
+          pendingCancellation?.cancelType === 'single'
+            ? `Are you sure you want to cancel your reservation for ${pendingCancellation.desk.description || `Desk ${pendingCancellation.desk.id}`} on ${selectedDate?.toLocaleDateString()}?`
+            : `Are you sure you want to cancel ALL dates for your reservation at ${pendingCancellation?.desk.description || `Desk ${pendingCancellation?.desk.id}`}?`
+        }
+        confirmText="Yes, Cancel"
+        cancelText="No, Keep It"
+        variant="danger"
+      />
+
+      {/* Authentication Prompt Modal */}
+      <Modal show={showAuthPromptModal} onHide={() => setShowAuthPromptModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Login Required</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="text-center py-4">
+          <i className="bi bi-person-lock" style={{ fontSize: '3rem', color: '#0d6efd' }}></i>
+          <p className="mt-3 mb-4">
+            You need to be logged in to make a reservation. Please login or register to continue.
+          </p>
+          <div className="d-flex gap-2 justify-content-center">
+            <Button
+              variant="primary"
+              onClick={() => {
+                setShowAuthPromptModal(false);
+                setShowLoginModal(true);
+              }}
+            >
+              Login
+            </Button>
+            <Button
+              variant="outline-primary"
+              onClick={() => {
+                setShowAuthPromptModal(false);
+                setShowRegisterModal(true);
+              }}
+            >
+              Register
+            </Button>
+          </div>
+        </Modal.Body>
+      </Modal>
+
+      {/* Login Modal */}
+      <LoginModal
+        show={showLoginModal}
+        onHide={() => setShowLoginModal(false)}
+        onSwitchToRegister={() => {
+          setShowLoginModal(false);
+          setShowRegisterModal(true);
+        }}
+      />
+
+      {/* Register Modal */}
+      <RegisterModal
+        show={showRegisterModal}
+        onHide={() => setShowRegisterModal(false)}
+        onSwitchToLogin={() => {
+          setShowRegisterModal(false);
+          setShowLoginModal(true);
+        }}
       />
     </Container>
   );
