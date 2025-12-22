@@ -4,6 +4,7 @@ import { GroupedReservation } from '../../types/reservation.types.ts';
 import { format, parseISO } from 'date-fns';
 import api from '../../services/api.ts';
 import ConfirmationModal from '../ConfirmationModal.tsx';
+import { DatesDisplay } from './DatesDisplay.tsx';
 
 interface ActiveReservationsContentProps {
   reservations: GroupedReservation[];
@@ -52,28 +53,7 @@ const ActiveReservationsContent = ({
     }
   };
 
-  const formatDate = (dateString: string) => {
-    try {
-      return format(parseISO(dateString), 'MMM dd, yyyy');
-    } catch {
-      return dateString;
-    }
-  };
 
-  const formatDateRange = (dates: string[]) => {
-    if (dates.length === 0) return 'No dates';
-    if (dates.length === 1) return formatDate(dates[0]);
-
-    // Just show first and last date as range, or list if few dates
-    const sortedDates = [...dates].sort();
-
-    if (sortedDates.length <= 3) {
-      return sortedDates.map(formatDate).join(', ');
-    }
-
-    // Show first 2 dates and count
-    return `${formatDate(sortedDates[0])}, ${formatDate(sortedDates[1])}, +${sortedDates.length - 2} more`;
-  };
 
   if (loading) {
     return (
@@ -107,51 +87,6 @@ const ActiveReservationsContent = ({
     );
   }
 
-  const DatesDisplay = ({ dates }: { dates: string[] }) => {
-    const [showAll, setShowAll] = useState(false);
-    const sortedDates = [...dates].sort();
-    const displayText = formatDateRange(dates);
-    const hasMoreDates = sortedDates.length > 3;
-
-    if (showAll && hasMoreDates) {
-      return (
-        <div>
-          <p className="mb-1 small">
-            <i className="bi bi-calendar-range me-1"></i>
-            {sortedDates.map(formatDate).join(', ')}
-          </p>
-          <Button
-            variant="link"
-            size="sm"
-            className="p-0 text-decoration-none small"
-            onClick={() => setShowAll(false)}
-          >
-            Show less
-          </Button>
-        </div>
-      );
-    }
-
-    return (
-      <div>
-        <p className="mb-1 small">
-          <i className="bi bi-calendar-range me-1"></i>
-          {displayText}
-        </p>
-        {hasMoreDates && (
-          <Button
-            variant="link"
-            size="sm"
-            className="p-0 text-decoration-none small"
-            onClick={() => setShowAll(true)}
-          >
-            Show all dates
-          </Button>
-        )}
-      </div>
-    );
-  };
-
   // Backend already filters to only upcoming reservations
   return (
     <Card.Body>
@@ -165,51 +100,66 @@ const ActiveReservationsContent = ({
           {reservations.map((group) => (
             <ListGroup.Item key={group.reservationGroupId} className="px-0">
               <div>
-                <h6 className="mb-1">
+                <h6 className="mb-1 fw-semibold fs-5">
                   {group.deskDescription || `Desk ${group.deskId}`}
-                  <Badge bg="secondary" className="ms-2">
-                    {group.reservationCount} {group.reservationCount === 1 ? 'day' : 'days'}
-                  </Badge>
                   {group.hasToday && (
-                    <Badge bg="success" className="ms-1">Today</Badge>
+                    <Badge bg="success" className="ms-2 align-text-bottom" pill>
+                      Today
+                    </Badge>
                   )}
                 </h6>
-                <p className="mb-1 text-muted small">
-                  <i className="bi bi-building me-1"></i>
-                  {group.buildingName || 'Unknown Building'}
+
+                <span className="mb-1 text-muted">
+                  <p className="fs-6">{group.buildingName || 'Unknown Building'}</p>
+                </span>
+
+                <div className="mb-4">
+                  {/* Reservation count – its own row */}
+                  <p className="mb-0 fs-6 fw-medium">
+                    {group.reservationCount} {group.reservationCount === 1 ? 'day' : 'days'} booked:{" "}
+                  </p>
+
+                  {/* Dates – its own row */}
+                  <DatesDisplay dates={group.dates} />
+                </div>
+
+                <p className="mb-0 text-muted">
+                  <span className="fs-6 fw-medium">
+
+                  </span>
+                  <span className="fs-6">
+                    {format(parseISO(group.createdAt), 'MMM dd, yyyy HH:mm')}
+                  </span>
+                  {group.daysUntilFirst === 0 && <span className="fw-medium"> • Starting today</span>}
+                  {group.daysUntilFirst === 1 && <span className="fw-medium"> • Starting tomorrow</span>}
+                  {group.daysUntilFirst > 1 && <span className="fw-medium"> • Starting in {group.daysUntilFirst} days</span>}
                 </p>
-                <DatesDisplay dates={group.dates} />
-                <p className="mb-2 text-muted small">
-                  Booked: {format(parseISO(group.createdAt), 'MMM dd, yyyy HH:mm')}
-                  {group.daysUntilFirst === 0 && ' • Starting today'}
-                  {group.daysUntilFirst === 1 && ' • Starting tomorrow'}
-                  {group.daysUntilFirst > 1 && ` • Starting in ${group.daysUntilFirst} days`}
-                </p>
-                <Button
-                  variant="outline-danger"
-                  size="sm"
-                  className="w-100"
-                  onClick={() => handleCancelClick(group.reservationGroupId, group.deskDescription || `Desk ${group.deskId}`)}
-                >
-                  Cancel
-                </Button>
               </div>
+              <Button
+                variant="outline-danger"
+                size="sm"
+                className="w-100"
+                onClick={() => handleCancelClick(group.reservationGroupId, group.deskDescription || `Desk ${group.deskId}`)}
+              >
+                Cancel
+              </Button>
             </ListGroup.Item>
           ))}
         </ListGroup>
-      )}
+      )
+      }
 
       <ConfirmationModal
         show={showConfirmModal}
         onHide={() => setShowConfirmModal(false)}
         onConfirm={handleConfirmCancel}
         title="Cancel Reservation"
-        message={`Are you sure you want to cancel all reservations for ${pendingCancellation?.deskDescription || 'this desk'}?`}
+        message={`Are you sure you want to cancel reservation for ${pendingCancellation?.deskDescription || 'this desk'}?`}
         confirmText="Yes, Cancel"
         cancelText="No, Keep It"
         variant="danger"
       />
-    </Card.Body>
+    </Card.Body >
   );
 };
 

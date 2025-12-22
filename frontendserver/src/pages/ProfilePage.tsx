@@ -83,21 +83,19 @@ const ProfilePage = () => {
         }
     ];
 
-
-
     // Render logged-in user view
     if (loggedInUser) {
         return (
             <Container className="px-4">
-                <h1 className="text-center mb-4">Profile Page</h1>
+                <h1 className="text-start mb-4 pt-4 fw-bold">Profile Page</h1>
                 <Row className="g-3">
                     {cards.map((card) => (
                         <Col key={card.id} xs={12} lg={4}>
                             <Card className="h-100 d-flex flex-column">
-                                <Card.Header className="py-2">
+                                <Card.Header>
                                     <div className="text-center">
-                                        <h2>{card.title}</h2>
-                                        <p className="fs-6 mb-0">{card.description}</p>
+                                        <h2 className="fs-1">{card.title}</h2>
+                                        <p className="fs-6 mb-1 text-muted">{card.description}</p>
                                     </div>
                                 </Card.Header>
                                 <Card.Body className="overflow-auto" style={{ maxHeight: '600px' }}>

@@ -2,16 +2,24 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    
 }
 
 body {
     margin: 0;
     padding: 0;
+    --bs-body-font-family: 'Montserrat', sans-serif;    
 }
 
 #root {
     margin: 0;
     padding: 0;
+    background-color: #ffffff;
+}
+:root {
+    --card-bg: #ffffff;
+    --card-header-bg: #e9ecef;
+    --card-body-bg: #f8f9fa ;
 }
 
 .App {
@@ -37,10 +45,40 @@ body {
     vertical-align: middle;
 }
 
+.card{
+    background-color: var(--card-bg);
+    border-color: black !important;
+    border-style: solid !important;
+    border-width: 2px !important;
+    border-radius: 0 !important;
+}
+
+.card .card-header {
+    background-color: var(--card-header-bg);
+    color: #191921;
+}
+
+.card .card-body {
+    background-color: var(--card-body-bg);
+    min-height: 100;
+}   
+
+.card .card-body .list-group-item {
+    background-color: transparent;
+    border-color: rgb(0, 0, 0) !important;
+}
+
 .nav-link.active {
     border-bottom: 2px solid rgb(209, 209, 209);
     padding-bottom: 0.25rem;
 }
+
+.hr-black {
+    border-color: rgb(0, 0, 0) !important;
+    border-width: 1px !important;
+    margin: 0.5rem 0;
+}
+
 /* Responsive card widths - mobile first */
 @media (max-width: 767px) {
     .card-container > div {
