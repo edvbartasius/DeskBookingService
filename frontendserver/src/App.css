@@ -37,6 +37,10 @@ body {
     vertical-align: middle;
 }
 
+.nav-link.active {
+    border-bottom: 2px solid rgb(209, 209, 209);
+    padding-bottom: 0.25rem;
+}
 /* Responsive card widths - mobile first */
 @media (max-width: 767px) {
     .card-container > div {
