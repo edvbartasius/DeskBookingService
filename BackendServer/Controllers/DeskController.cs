@@ -53,7 +53,6 @@ namespace DeskBookingService.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> AddDesk([FromBody] DeskDto deskDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(deskDto));
             try
             {
                 var desk = _mapper.Map<Desk>(deskDto);

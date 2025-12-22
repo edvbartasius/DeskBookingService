@@ -23,13 +23,8 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
                 Email: email,
                 Password: password
             };
-            console.log("Submitting login data:", loginData);
             const response = await api.post("users/login-user", loginData);
             if (response.status === 200) { // success
-                // TODO: Remove password from DTO when returning User object from backend
-                console.log("Login successful", response.data);
-                console.log("User role from backend:", response.data.role);
-
                 // Store User context for session-like functionality
                 setUser({
                     id: response.data.id,
@@ -45,7 +40,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ show, onHide, onSwitchToRegiste
                     ? response.data
                     : response.data?.title || response.data?.message || "Login failed";
                 setErrorMessage(errorMsg);
-                console.log("Login failed:", response.data);
             }
         } catch (error: any)
         {

@@ -76,7 +76,6 @@ namespace DeskBookingService.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> AddBuilding([FromBody] BuildingDto buildingDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(buildingDto));
             try
             {
                 var building = _mapper.Map<Building>(buildingDto);
@@ -108,7 +107,6 @@ namespace DeskBookingService.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateBuilding(int id, [FromBody] BuildingDto buildingDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(buildingDto));
             try
             {
                 var building = await _context.Buildings.FindAsync(id);
