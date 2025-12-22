@@ -46,7 +46,8 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
     handleMouseUp,
     handleMouseLeave,
     handleTouchStart,
-    handleTouchMove
+    handleTouchMove,
+    handleTouchEnd
   } = useFloorPlanPan({ viewBox, setViewBox, containerSize });
 
   // Initialize viewBox based on floor plan dimensions (in pixels)
@@ -247,7 +248,7 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
         onMouseLeave={handleMouseLeave}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        onTouchEnd={handleMouseUp}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Grid background */}
         <defs>

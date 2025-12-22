@@ -42,16 +42,17 @@ export const DeskStatusContent: React.FC<DeskStatusContentProps> = ({
     if (showButton && variant === 'full') {
       return (
         <Button
-          className="d-block text-center"
+          className="w-100 text-center"
+          size="sm"
           onClick={handleReserveClick}
-          style={{ pointerEvents: 'auto' }}
+          style={{ pointerEvents: 'auto', fontSize: '0.8rem', padding: '0.4rem 0.5rem' }}
         >
-          <strong>Reserve this desk</strong>
+          <strong>Reserve</strong>
         </Button>
       );
     }
     return (
-      <small className="text-success d-block">
+      <small className="text-success d-block text-center">
         <strong>Reserve this desk</strong>
       </small>
     );
@@ -59,36 +60,36 @@ export const DeskStatusContent: React.FC<DeskStatusContentProps> = ({
 
   const renderBookedContent = () => (
     <div className="text-center">
-      {!desk.isReservedByCaller && <small className="text-muted d-block">
+      {!desk.isReservedByCaller && <small className="text-muted d-block" style={{ fontSize: '0.8rem' }}>
         <strong>Reserved by:</strong> {desk.reservedByFullName || 'Unknown'}
       </small>
       }
       {desk.isReservedByCaller && (
-        <>
-          <small className="text-primary d-block mt-1">
-            <strong>This is your reservation</strong>
+        <div>
+          <small className="text-primary d-block mb-1 pb-0 mb-0" style={{ fontSize: '0.75rem' }}>
+            <strong className='mb-0'>Your reservation</strong>
           </small>
           {showButton && variant === 'full' && onCancelClick && (
-            <div className="mt-2 d-flex gap-2">
+            <div className="d-flex gap-1">
               <Button
                 variant="outline-danger"
                 size="sm"
                 onClick={handleCancelSingleDay}
-                style={{ pointerEvents: 'auto' }}
+                style={{ pointerEvents: 'auto', fontSize: '0.65rem', whiteSpace: 'nowrap', flex: 1, padding: '0.25rem 0.3rem' }}
               >
-                Cancel This Day
+                Cancel Day
               </Button>
               <Button
                 variant="danger"
                 size="sm"
                 onClick={handleCancelRange}
-                style={{ pointerEvents: 'auto' }}
+                style={{ pointerEvents: 'auto', fontSize: '0.65rem', whiteSpace: 'nowrap', flex: 1, padding: '0.25rem 0.3rem' }}
               >
-                Cancel All Dates
+                Cancel All
               </Button>
             </div>
           )}
-        </>
+        </div>
       )}
     </div>
   );
@@ -96,11 +97,11 @@ export const DeskStatusContent: React.FC<DeskStatusContentProps> = ({
   const renderUnavailableContent = () => (
     <div className="text-center">
       {desk.maintenanceReason && (
-        <small className="text-muted d-block">
+        <small className="text-muted d-block" style={{ fontSize: '0.8rem' }}>
           <strong>Reason:</strong> {desk.maintenanceReason}
         </small>
       )}
-      <small className="text-danger d-block mt-1">
+      <small className="text-danger d-block" style={{ fontSize: '0.8rem' }}>
         <strong>Cannot be reserved</strong>
       </small>
     </div>

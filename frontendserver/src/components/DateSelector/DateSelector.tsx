@@ -190,12 +190,12 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
     <>
       {!multiSelect ? (
         <div className="d-flex align-items-center gap-2">
-          <span className="text-muted">Date:</span>
-          <strong>
+          <span className="text-dark fw-bold fs-6 align-self-center">Date:</span>
+          <strong className="align-self-center">
             {selectedDate ? getReservationDateLabel(selectedDate) : "Not selected"}
           </strong>
           <Button
-            variant="outline-primary"
+            variant="outline-dark flex-shrink-0 align-self-center"
             size="sm"
             onClick={() => setShowModal(true)}
             disabled={disabled}
@@ -208,7 +208,7 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
           <span className="text-muted">Dates:</span>
           <strong>{getSelectedDatesLabel()}</strong>
           <Button
-            variant="outline-primary"
+            variant="outline-dark"
             size="sm"
             onClick={() => setShowModal(true)}
             disabled={disabled}

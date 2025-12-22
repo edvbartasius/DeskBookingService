@@ -65,6 +65,7 @@ const ProfilePage = () => {
                     error={errorActive}
                     userId={loggedInUser?.id || ''}
                     onRefresh={refetchActive}
+                    onRefreshHistory={refetchHistory}
                 />
             )
         },

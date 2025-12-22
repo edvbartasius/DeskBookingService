@@ -63,7 +63,7 @@ const DeskPage = () => {
     const fetchBuildings = async () => {
       try {
         const response = await api.get('buildings/get-buildings');
-        if (response.status === 200){
+        if (response.status === 200) {
           setBuildings(response.data);
         }
       } catch (error: any) {
@@ -92,7 +92,7 @@ const DeskPage = () => {
 
       try {
         const response = await api.get(url);
-        if (response.status === 200){
+        if (response.status === 200) {
           setFloorPlan(response.data);
         }
       } catch (error: any) {
@@ -185,7 +185,7 @@ const DeskPage = () => {
         response = await api.patch(url);
       } else {
         const dateStr = selectedDate ? formatDateLocal(selectedDate) : '';
-        const url = `/reservations/my-reservations/cancel-booking-group/${desk.id}/${dateStr}/${loggedInUser?.id}`;
+        const url = `/reservations/my-reservations/cancel-booking-group-by-desk/${desk.id}/${dateStr}/${loggedInUser?.id}`;
         response = await api.patch(url);
       }
 
@@ -215,90 +215,193 @@ const DeskPage = () => {
     setDeskToReserve(null);
   };
 
+  // Calculate desk statistics
+  const getDeskStats = () => {
+    if (!floorPlan || !floorPlan.floorPlanDesks) {
+      return { total: 0, available: 0, myReservations: 0 };
+    }
+
+    const total = floorPlan.floorPlanDesks.length;
+    const available = floorPlan.floorPlanDesks.filter(desk => desk.status === 0).length; // DeskStatus.Available
+    const myReservations = floorPlan.floorPlanDesks.filter(desk => desk.isReservedByCaller).length;
+
+    return { total, available, myReservations };
+  };
+
+  // Find next available (non-closed) date
+  const findNextAvailableDate = (fromDate: Date, direction: 'next' | 'prev' = 'next'): Date => {
+    let currentDate = new Date(fromDate);
+    const maxIterations = 365; // Prevent infinite loop
+    let iterations = 0;
+
+    while (iterations < maxIterations) {
+      currentDate = direction === 'next'
+        ? addDays(currentDate, 1)
+        : addDays(currentDate, -1);
+
+      const isClosed = closedDates.some(closedDate =>
+        formatDateLocal(closedDate) === formatDateLocal(currentDate)
+      );
+
+      if (!isClosed) {
+        return currentDate;
+      }
+
+      iterations++;
+    }
+
+    return fromDate; // Fallback to original date if no available date found
+  };
+
+  // Quick date navigation handlers
+  const handleTodayClick = () => {
+    const isClosed = closedDates.some(closedDate =>
+      formatDateLocal(closedDate) === formatDateLocal(today)
+    );
+
+    if (isClosed) {
+      const nextAvailable = findNextAvailableDate(today, 'next');
+      setSelectedDate(nextAvailable);
+    } else {
+      setSelectedDate(today);
+    }
+  };
+
+  const handleTomorrowClick = () => {
+    const isClosed = closedDates.some(closedDate =>
+      formatDateLocal(closedDate) === formatDateLocal(tomorrow)
+    );
+
+    if (isClosed) {
+      const nextAvailable = findNextAvailableDate(tomorrow, 'next');
+      setSelectedDate(nextAvailable);
+    } else {
+      setSelectedDate(tomorrow);
+    }
+  };
+
+  const handlePrevDay = () => {
+    if (!selectedDate) return;
+    const prevDate = addDays(selectedDate, -1);
+    const isClosed = closedDates.some(closedDate =>
+      formatDateLocal(closedDate) === formatDateLocal(prevDate)
+    );
+
+    if (isClosed) {
+      const nextAvailable = findNextAvailableDate(prevDate, 'prev');
+      setSelectedDate(nextAvailable);
+    } else {
+      setSelectedDate(prevDate);
+    }
+  };
+
+  const handleNextDay = () => {
+    if (!selectedDate) return;
+    const nextDate = addDays(selectedDate, 1);
+    const isClosed = closedDates.some(closedDate =>
+      formatDateLocal(closedDate) === formatDateLocal(nextDate)
+    );
+
+    if (isClosed) {
+      const nextAvailable = findNextAvailableDate(nextDate, 'next');
+      setSelectedDate(nextAvailable);
+    } else {
+      setSelectedDate(nextDate);
+    }
+  };
+
+  const deskStats = getDeskStats();
+
   return (
-    <Container fluid className="py-4">
-      <Card className="desk-page-card" style={{ backgroundColor: '#f8f9fa', border: 'none', boxShadow: '0 4px 16px rgba(0,0,0,0.1)' }}>
+    <Container className="py-4">
+      <h1 className="text-start mb-4 pt-2 fw-bold">Desk Booking</h1>
+      <Card className="desk-page-card">
         <Card.Body className="p-4">
-          {/* Header */}
-          <Row className="mb-4 align-items-center desk-page-header">
-            <Col md={6}>
-              <h1 className="mb-0">Desk Booking</h1>
-            </Col>
-            {selectedBuilding && (
-              <Col md={6} className="d-flex justify-content-end">
-                <ButtonGroup className="desk-page-view-toggle">
-                  <Button
-                    variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
-                    onClick={() => setViewMode('list')}
-                    title="List View"
-                  >
-                    <i className="bi bi-list-ul me-2"></i>
-                    List
-                  </Button>
-                  <Button
-                    variant={viewMode === 'floorplan' ? 'primary' : 'outline-primary'}
-                    onClick={() => setViewMode('floorplan')}
-                    title="Floor Plan View"
-                  >
-                    <i className="bi bi-map me-2"></i>
-                    Floor Plan
-                  </Button>
-                </ButtonGroup>
-              </Col>
-            )}
-          </Row>
-
-          {/* Building Selector */}
-          <Row className="mb-3">
+          <Row className="mb-4">
             <Col>
-              <BuildingSelector
-                buildings={buildings}
-                selectedBuilding={selectedBuilding}
-                onBuildingChange={handleBuildingChange}
-                loading={loading}
-              />
+                <Row className="g-4 align-items-end">
+                    {/* Left: Building Selector */}
+                    <Col md={6}>
+                      <BuildingSelector
+                        buildings={buildings}
+                        selectedBuilding={selectedBuilding}
+                        onBuildingChange={handleBuildingChange}
+                        loading={loading}
+                      />
+                    </Col>
+
+                    {/* Right: Date Selector (only show when building is selected) */}
+                    {selectedBuilding && (
+                      <Col md={6}>
+                        <DateSelector
+                          selectedDate={selectedDate}
+                          onSelectedDateChange={setSelectedDate}
+                          closedDates={closedDates}
+                          bookedDates={[]}
+                          disabled={loading || loadingDesks || loadingClosedDates}
+                        />
+                      </Col>
+                    )}
+                  </Row>
             </Col>
           </Row>
 
-          {/* Date Selector - Full Width */}
-          {selectedBuilding && (
-            <Row className="mb-4 desk-page-view-transition">
-              <Col>
-                <Card className="desk-page-card" style={{ backgroundColor: '#ffffff' }}>
-                  <Card.Header className="desk-page-card-header">
-                    <h5 className="mb-0 d-flex align-items-center">
-                      <i className="bi bi-calendar-event me-2 text-primary"></i>
-                      Select Date
-                    </h5>
-                  </Card.Header>
-                  <Card.Body>
-                    <DateSelector
-                      selectedDate={selectedDate}
-                      onSelectedDateChange={setSelectedDate}
-                      closedDates={closedDates}
-                      bookedDates={[]}
-                      disabled={loading || loadingDesks || loadingClosedDates}
-                    />
-                  </Card.Body>
-                </Card>
+          {/* Desk Stats */}
+          {selectedBuilding && selectedDate && (
+            <Row className="mb-3 align-items-center">
+              <Col md={6} className="text-start">
+                {!loadingDesks && (
+                  <div className="desk-stats-summary">
+                    <span className="badge bg-success me-2">
+                      <i className="bi bi-check-circle me-1"></i>
+                      {deskStats.available} Available
+                    </span>
+                    <span className="badge bg-primary me-2">
+                      <i className="bi bi-person-check me-1"></i>
+                      {deskStats.myReservations} Mine
+                    </span>
+                    <span className="badge bg-secondary">
+                      <i className="bi bi-grid-3x3 me-1"></i>
+                      {deskStats.total} Total
+                    </span>
+                  </div>
+                )}
+              </Col>
+              <Col md={6} className="text-start">
+                <Row className="mb-3">
+                <Col className="d-flex justify-content-end">
+                  <ButtonGroup className="desk-page-view-toggle">
+                    <Button
+                      variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
+                      onClick={() => setViewMode('list')}
+                      title="List View"
+                    >
+                      <i className="bi bi-list-ul me-2"></i>
+                      List
+                    </Button>
+                    <Button
+                      variant={viewMode === 'floorplan' ? 'primary' : 'outline-primary'}
+                      onClick={() => setViewMode('floorplan')}
+                      title="Floor Plan View"
+                    >
+                      <i className="bi bi-map me-2"></i>
+                      Floor Plan
+                    </Button>
+                  </ButtonGroup>
+                </Col>
+              </Row>
               </Col>
             </Row>
           )}
 
-          {/* Main Content - Dynamic Layout Based on View Mode */}
-          {selectedBuilding && (
-            <Row>
-              {/* Floor Plan Canvas */}
-              {viewMode === 'floorplan' && (
-                <Col lg={12} className="mb-3 desk-page-view-transition">
-                  <Card className="desk-page-card" style={{ height: '70vh', backgroundColor: '#ffffff' }}>
-                    <Card.Header className="desk-page-card-header">
-                      <h5 className="mb-0 d-flex align-items-center">
-                        <i className="bi bi-map me-2 text-primary"></i>
-                        Floor Plan
-                      </h5>
-                    </Card.Header>
-                    <Card.Body className="p-0" style={{ height: 'calc(70vh - 60px)' }}>
+          {/* Main Content - View Toggle and Desk Selection */}
+          {selectedBuilding && selectedDate && (
+            <>
+              {/* Desk Selection Section - No Card Borders */}
+              <Row>
+                <Col lg={12}>
+                  {viewMode === 'floorplan' ? (
+                    <div style={{ height: '70vh' }}>
                       {floorPlan ? (
                         <FloorPlanCanvas
                           floorPlan={floorPlan}
@@ -307,10 +410,10 @@ const DeskPage = () => {
                           selectedDeskId={deskToReserve?.id}
                         />
                       ) : (
-                        <div className="d-flex justify-content-center align-items-center h-100 desk-page-empty-state">
+                        <div className="d-flex justify-content-center align-items-center h-100">
                           {loadingDesks ? (
                             <div className="text-center">
-                              <div className="spinner-border text-primary desk-page-spinner mb-3" role="status">
+                              <div className="spinner-border text-primary mb-3" role="status">
                                 <span className="visually-hidden">Loading floor plan...</span>
                               </div>
                               <p className="text-muted">Loading floor plan...</p>
@@ -323,33 +426,20 @@ const DeskPage = () => {
                           )}
                         </div>
                       )}
-                    </Card.Body>
-                  </Card>
-                </Col>
-              )}
-
-              {/* Desk List View */}
-              {viewMode === 'list' && (
-                <Col lg={12} className="mb-3 desk-page-view-transition">
-                  <Card className="desk-page-card" style={{ height: '70vh', backgroundColor: '#ffffff' }}>
-                    <Card.Header className="desk-page-card-header">
-                      <h5 className="mb-0 d-flex align-items-center">
-                        <i className="bi bi-list-ul me-2 text-primary"></i>
-                        Available Desks
-                      </h5>
-                    </Card.Header>
-                    <Card.Body className="p-3 desk-list-scrollable" style={{ maxHeight: 'calc(70vh - 60px)', overflowY: 'auto' }}>
+                    </div>
+                  ) : (
+                    <div style={{ height: '70vh', overflowY: 'auto' }}>
                       <DeskListView
                         floorPlan={floorPlan}
                         onReserveClick={handleReserveClick}
                         onCancelClick={handleCancelReservation}
                         loading={loadingDesks}
                       />
-                    </Card.Body>
-                  </Card>
+                    </div>
+                  )}
                 </Col>
-              )}
-            </Row>
+              </Row>
+            </>
           )}
         </Card.Body>
       </Card>

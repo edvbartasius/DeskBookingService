@@ -12,6 +12,7 @@ interface ActiveReservationsContentProps {
   error: string | null;
   userId: string;
   onRefresh: () => void;
+  onRefreshHistory: () => void;
 }
 
 const ActiveReservationsContent = ({
@@ -19,7 +20,8 @@ const ActiveReservationsContent = ({
   loading,
   error,
   userId,
-  onRefresh
+  onRefresh,
+  onRefreshHistory
 }: ActiveReservationsContentProps) => {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [pendingCancellation, setPendingCancellation] = useState<{
@@ -41,8 +43,9 @@ const ActiveReservationsContent = ({
       );
 
       if (response.status === 200) {
-        // Refresh the reservations list
+        // Refresh both active reservations and history
         onRefresh();
+        onRefreshHistory();
       }
     } catch (err: any) {
       console.error('Failed to cancel reservation group:', err);
@@ -57,39 +60,37 @@ const ActiveReservationsContent = ({
 
   if (loading) {
     return (
-      <Card.Body className="text-center py-5">
+      <div className="text-center py-5">
         <Spinner animation="border" variant="primary" />
         <p className="mt-3 text-muted">Loading reservations...</p>
-      </Card.Body>
+      </div>
     );
   }
 
   if (error) {
     return (
-      <Card.Body>
-        <Alert variant="danger">
-          <Alert.Heading>Error Loading Reservations</Alert.Heading>
-          <p>{error}</p>
-          <Button variant="outline-danger" size="sm" onClick={onRefresh}>
-            Try Again
-          </Button>
-        </Alert>
-      </Card.Body>
+      <Alert variant="danger">
+        <Alert.Heading>Error Loading Reservations</Alert.Heading>
+        <p>{error}</p>
+        <Button variant="outline-danger" size="sm" onClick={onRefresh}>
+          Try Again
+        </Button>
+      </Alert>
     );
   }
 
   if (reservations.length === 0) {
     return (
-      <Card.Body className="text-center py-5">
+      <div className="text-center py-5">
         <p className="text-muted">No active reservations</p>
         <p className="small">Book a desk to see your reservations here</p>
-      </Card.Body>
+      </div>
     );
   }
 
   // Backend already filters to only upcoming reservations
   return (
-    <Card.Body>
+    <>
       {reservations.length === 0 ? (
         <div className="text-center py-5">
           <p className="text-muted">No active reservations</p>
@@ -114,12 +115,12 @@ const ActiveReservationsContent = ({
                 </span>
 
                 <div className="mb-4">
-                  {/* Reservation count – its own row */}
+                  {/* Reservation count*/}
                   <p className="mb-0 fs-6 fw-medium">
                     {group.reservationCount} {group.reservationCount === 1 ? 'day' : 'days'} booked:{" "}
                   </p>
 
-                  {/* Dates – its own row */}
+                  {/* Dates*/}
                   <DatesDisplay dates={group.dates} />
                 </div>
 
@@ -159,7 +160,7 @@ const ActiveReservationsContent = ({
         cancelText="No, Keep It"
         variant="danger"
       />
-    </Card.Body >
+    </>
   );
 };
 

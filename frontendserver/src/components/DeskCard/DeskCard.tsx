@@ -71,7 +71,7 @@ export const DeskCard: React.FC<DeskCardProps> = ({
             zIndex: 10
           }}
         >
-          <h6 className="fw-bold mb-3">{desk.description || `Desk ${desk.id}`}</h6>
+          <h6 className="fw-bold mb-1">{desk.description || `Desk ${desk.id}`}</h6>
           <DeskStatusContent
             desk={desk}
             variant="full"
