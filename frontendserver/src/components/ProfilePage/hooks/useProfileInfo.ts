@@ -36,6 +36,7 @@ export const useActiveReservations = (userId: string | undefined) => {
 
   useEffect(() => {
     fetchReservations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   return { reservations, loading, error, refetch: fetchReservations };
@@ -74,6 +75,7 @@ export const useReservationHistory = (userId: string | undefined) => {
 
   useEffect(() => {
     fetchHistory();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   return { history, loading, error, refetch: fetchHistory };
@@ -119,6 +121,7 @@ export const useUserProfile = (userId: string | undefined) => {
 
   useEffect(() => {
     fetchUser();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   return { user, loading, error, refetch: fetchUser };

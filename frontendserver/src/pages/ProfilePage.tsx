@@ -1,7 +1,6 @@
-import { Card, Container, Row, Col, Modal, Button } from "react-bootstrap";
+import { Card, Container, Row, Col} from "react-bootstrap";
 import { useUser } from "../contexts/UserContext.tsx";
 import { Navigate } from "react-router-dom";
-import { useState } from "react";
 import {
     UserProfileContent,
     ActiveReservationsContent,

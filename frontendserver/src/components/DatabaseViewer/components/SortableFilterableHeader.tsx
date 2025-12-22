@@ -23,7 +23,7 @@ export const SortableFilterableHeader: React.FC<SortableFilterableHeaderProps> =
   onFilterChange,
   canFilter = true
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded] = useState(false);
 
   const isActive = sortColumn === columnKey;
 

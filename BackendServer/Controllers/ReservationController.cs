@@ -88,7 +88,6 @@ namespace DeskBookingService.Controllers
         [HttpPut("update/{id}")]
         public async Task<IActionResult> UpdateReservation(int id, [FromBody] UpdateReservationDto reservationDto)
         {
-            Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(reservationDto));
             try
             {
                 var reservation = await _context.Reservations.FindAsync(id);

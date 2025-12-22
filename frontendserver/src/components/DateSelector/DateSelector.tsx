@@ -249,6 +249,4 @@ export const DateSelector: React.FC<DateSelectorProps> = ({
   );
 };
 
-export default {
-  DateSelector
-};
+export default DateSelector;

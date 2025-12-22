@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import DeskTile from './DeskTile.tsx';
 import DeskHoverCard from './DeskHoverCard.tsx';
-import { DeskDto, DeskStatus, FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
+import { DeskDto, FloorPlanCanvasProps, ViewBox } from '../types/floorPlan.types.ts';
 import { useFloorPlanZoom } from '../hooks/useFloorPlanZoom.ts';
 import { useFloorPlanPan } from '../hooks/useFloorPlanPan.ts';
 import { useContainerSize } from '../hooks/useContainerSize.ts';
@@ -98,6 +98,7 @@ const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
 
   useEffect(() => {
     fitToContainer();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [floorPlan, containerSize]);
 
   if (!floorPlan) {

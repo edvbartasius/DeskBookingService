@@ -63,7 +63,7 @@ const DeskPage = () => {
 
   // Fetch office closed dates
   const { closedDates, loading: loadingClosedDates } = useOfficeClosedDates(selectedBuilding?.id);
-  const { bookedDates, loading: loadingBookedDates } = useDeskAvailability(deskToReserve?.id);
+  const { bookedDates } = useDeskAvailability(deskToReserve?.id);
 
   // Fetch buildings on mount
   useEffect(() => {
@@ -141,7 +141,6 @@ const DeskPage = () => {
         reservationDates: selectedDates.map(formatDateLocal)
       };
 
-      console.log("Booking request:", bookingRequest);
       const url = `reservations/add`;
       const response = await api.post(url, bookingRequest);
 
@@ -194,7 +193,6 @@ const DeskPage = () => {
       if (cancelType === 'single') {
         // Cancel single day
         const dateStr = selectedDate ? formatDateLocal(selectedDate) : '';
-        console.log("Cancel single day:", desk.id, dateStr, loggedInUser?.id);
         const url = `/reservations/my-reservations/cancel-single-day/${desk.id}/${dateStr}/${loggedInUser?.id}`;
         response = await api.patch(url);
       } else {
@@ -240,31 +238,6 @@ const DeskPage = () => {
     const myReservations = floorPlan.floorPlanDesks.filter(desk => desk.isReservedByCaller).length;
 
     return { total, available, myReservations };
-  };
-
-  // Find next available (non-closed) date
-  const findNextAvailableDate = (fromDate: Date, direction: 'next' | 'prev' = 'next'): Date => {
-    let currentDate = new Date(fromDate);
-    const maxIterations = 365; // Prevent infinite loop
-    let iterations = 0;
-
-    while (iterations < maxIterations) {
-      currentDate = direction === 'next'
-        ? addDays(currentDate, 1)
-        : addDays(currentDate, -1);
-
-      const isClosed = closedDates.some(closedDate =>
-        formatDateLocal(closedDate) === formatDateLocal(currentDate)
-      );
-
-      if (!isClosed) {
-        return currentDate;
-      }
-
-      iterations++;
-    }
-
-    return fromDate; // Fallback to original date if no available date found
   };
 
   const deskStats = getDeskStats();

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, ListGroup, Badge, Button, Spinner, Alert } from 'react-bootstrap';
+import { ListGroup, Badge, Button, Spinner, Alert } from 'react-bootstrap';
 import { GroupedReservation } from '../../types/reservation.types.ts';
 import { format, parseISO } from 'date-fns';
 import api from '../../services/api.ts';
