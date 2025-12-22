@@ -43,11 +43,6 @@ export const SortableFilterableHeader: React.FC<SortableFilterableHeaderProps> =
     }
   };
 
-  const toggleExpand = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsExpanded(!isExpanded);
-  };
-
   return (
     <th className="p-0 align-top position-relative">
       <div className="d-flex flex-column w-100">

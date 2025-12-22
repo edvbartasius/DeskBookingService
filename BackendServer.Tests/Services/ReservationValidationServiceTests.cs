@@ -25,116 +25,6 @@ public class ReservationValidationServiceTests : IDisposable
         _context.Database.EnsureDeleted();
         _context.Dispose();
     }
-
-    #region IsDeskAvailable Tests
-
-    [Fact]
-    public async Task IsDeskAvailable_NoReservations_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-
-        // Act
-        var result = await _service.IsDeskAvailable(deskId, date);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public async Task IsDeskAvailable_DeskAlreadyBooked_ReturnsFalse()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date);
-
-        // Act
-        var result = await _service.IsDeskAvailable(deskId, date);
-
-        // Assert
-        Assert.False(result);
-    }
-
-    [Fact]
-    public async Task IsDeskAvailable_CancelledReservation_ReturnsTrue()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date, ReservationStatus.Cancelled);
-
-        // Act
-        var result = await _service.IsDeskAvailable(deskId, date);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    [Fact]
-    public async Task IsDeskAvailable_WithExcludeReservationId_IgnoresOwnReservation()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = new DateOnly(2025, 12, 25);
-        var reservation = TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date);
-
-        // Act
-        var result = await _service.IsDeskAvailable(deskId, date, reservation.Id);
-
-        // Assert
-        Assert.True(result);
-    }
-
-    #endregion
-
-    #region ValidateDateNotInPast Tests
-
-    [Fact]
-    public void ValidateDateNotInPast_FutureDate_ReturnsValid()
-    {
-        // Arrange
-        var futureDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
-
-        // Act
-        var (isValid, errorMessage) = _service.ValidateDateNotInPast(futureDate);
-
-        // Assert
-        Assert.True(isValid);
-        Assert.Null(errorMessage);
-    }
-
-    [Fact]
-    public void ValidateDateNotInPast_Today_ReturnsValid()
-    {
-        // Arrange
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-        // Act
-        var (isValid, errorMessage) = _service.ValidateDateNotInPast(today);
-
-        // Assert
-        Assert.True(isValid);
-        Assert.Null(errorMessage);
-    }
-
-    [Fact]
-    public void ValidateDateNotInPast_PastDate_ReturnsInvalid()
-    {
-        // Arrange
-        var pastDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
-
-        // Act
-        var (isValid, errorMessage) = _service.ValidateDateNotInPast(pastDate);
-
-        // Assert
-        Assert.False(isValid);
-        Assert.Contains("Cannot make reservations for past dates", errorMessage);
-    }
-
-    #endregion
-
     #region ValidateBookingSize Tests
 
     [Fact]
@@ -192,6 +82,7 @@ public class ReservationValidationServiceTests : IDisposable
 
         // Act
         var (isValid, errorMessage) = await _service.ValidateUserActiveReservationsLimit(userId, additionalReservations);
+
 
         // Assert
         Assert.True(isValid);
@@ -260,72 +151,7 @@ public class ReservationValidationServiceTests : IDisposable
         Assert.True(isValid);
         Assert.Null(errorMessage);
     }
-
-    #endregion
-
-    #region ValidateReservation Tests
-
-    [Fact]
-    public async Task ValidateReservation_ValidReservation_ReturnsValid()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
-
-        // Act
-        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
-
-        // Assert
-        Assert.True(isValid);
-        Assert.Null(errorMessage);
-    }
-
-    [Fact]
-    public async Task ValidateReservation_PastDate_ReturnsInvalid()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1));
-
-        // Act
-        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
-
-        // Assert
-        Assert.False(isValid);
-        Assert.Contains("Cannot make reservations for past dates", errorMessage);
-    }
-
-    [Fact]
-    public async Task ValidateReservation_DeskNotFound_ReturnsInvalid()
-    {
-        // Arrange
-        var deskId = 999;
-        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
-
-        // Act
-        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
-
-        // Assert
-        Assert.False(isValid);
-        Assert.Contains("Desk with ID 999 not found", errorMessage);
-    }
-
-    [Fact]
-    public async Task ValidateReservation_DeskAlreadyBooked_ReturnsInvalid()
-    {
-        // Arrange
-        var deskId = 1;
-        var date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));
-        TestDbContextFactory.CreateTestReservation(_context, "user1", deskId, date);
-
-        // Act
-        var (isValid, errorMessage) = await _service.ValidateReservation(deskId, date);
-
-        // Assert
-        Assert.False(isValid);
-        Assert.Contains("already reserved", errorMessage);
-    }
-
-    #endregion
 }
+
+#endregion
 

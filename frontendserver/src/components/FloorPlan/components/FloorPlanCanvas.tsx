@@ -18,7 +18,6 @@ import {
 const FloorPlanCanvas: React.FC<FloorPlanCanvasProps> = ({
   floorPlan,
   onDeskClick,
-  selectedDeskId,
   onCancelClick
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);

@@ -27,7 +27,7 @@ const HomePage = () => {
         <h1 className="display-4 mb-3">Desk Booking Service</h1>
         <p className="lead text-muted mb-4">Book your workspace for the day</p>
         <div className="d-flex gap-3 justify-content-center">
-          <button className="btn btn-primary btn-lg" onClick={() => navigate('/desk')}>
+          <button className="btn btn-primary btn-lg" onClick={() => navigate('/desks')}>
             Book a Desk!
           </button>
           {!loggedInUser && (

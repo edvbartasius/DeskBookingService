@@ -66,8 +66,6 @@ const DeskTile: React.FC<DeskTileProps> = ({ desk, onClick, onHover, isSelected,
     }
   };
 
-
-
   return (
     <g
       transform={`translate(${pixelPosition.x}, ${pixelPosition.y})`}

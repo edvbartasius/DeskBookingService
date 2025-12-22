@@ -30,9 +30,8 @@ public class DeskControllerTests : IDisposable
         var config = TypeAdapterConfig.GlobalSettings;
         _mapper = new Mapper(config);
 
-        var deskAvailabilityService = new DeskAvailabilityService(_context);
         var validator = new DeskValidator(_context);
-        _controller = new DeskController(_context, _mapper, deskAvailabilityService, validator);
+        _controller = new DeskController(_context, _mapper, validator);
     }
 
     public void Dispose()
@@ -66,6 +65,7 @@ public class DeskControllerTests : IDisposable
         var deskDto = new DeskDto
         {
             Description = "New Desk",
+            DeskNumber = "100",
             BuildingId = 1,
             PositionX = 5,
             PositionY = 5
@@ -88,6 +88,7 @@ public class DeskControllerTests : IDisposable
         var deskDto = new DeskDto
         {
             Description = "Test Desk",
+            DeskNumber = "100",
             BuildingId = 999, // Non-existent building
             PositionX = 10,
             PositionY = 10
@@ -107,6 +108,7 @@ public class DeskControllerTests : IDisposable
         var deskDto = new DeskDto
         {
             Description = "", // Empty description
+            DeskNumber = "100",
             BuildingId = 1,
             PositionX = 10,
             PositionY = 10
@@ -126,6 +128,7 @@ public class DeskControllerTests : IDisposable
         var deskDto = new DeskDto
         {
             Description = "Test Desk",
+            DeskNumber = "100",
             BuildingId = 1,
             PositionX = 150, // Outside floor plan
             PositionY = 10
@@ -145,6 +148,7 @@ public class DeskControllerTests : IDisposable
         var deskDto = new DeskDto
         {
             Description = "Test Desk",
+            DeskNumber = "100",
             BuildingId = 1,
             PositionX = -5, // Negative position
             PositionY = 10
@@ -218,6 +222,7 @@ public class DeskControllerTests : IDisposable
         var deskDto = new DeskDto
         {
             Id = desk.Id,
+            DeskNumber = "100",
             Description = "Updated Description",
             BuildingId = 1,
             PositionX = 8,  // Within bounds (0-14)
@@ -244,6 +249,7 @@ public class DeskControllerTests : IDisposable
         {
             Id = 999,
             Description = "Test",
+            DeskNumber = "100",
             BuildingId = 1,
             PositionX = 10,
             PositionY = 10
@@ -273,6 +279,7 @@ public class DeskControllerTests : IDisposable
         var deskDto = new DeskDto
         {
             Id = desk.Id,
+            DeskNumber = "100",
             Description = "", // Invalid empty description
             BuildingId = 1,
             PositionX = 5,
@@ -304,6 +311,7 @@ public class DeskControllerTests : IDisposable
         {
             Id = desk.Id,
             Description = "Test Desk",
+            DeskNumber = "100",
             BuildingId = 1,
             PositionX = 150, // Outside floor plan (max is 14)
             PositionY = 5
@@ -334,6 +342,7 @@ public class DeskControllerTests : IDisposable
         {
             Id = 999, // Different from route parameter - controller uses deskDto.Id, so returns NotFound
             Description = "Test Desk",
+            DeskNumber = "100",
             BuildingId = 1,
             PositionX = 5,
             PositionY = 5

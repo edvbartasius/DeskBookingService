@@ -139,8 +139,17 @@ namespace DeskBookingService.Controllers
                 return BadRequest("Desk not found");
             }
 
+            // Unified date handling - works for single OR multiple dates
+            // To fix add call from DBViewer
+            var dates = dto.GetEffectiveDates();
+
+            if (dates.Count == 0)
+            {
+                return BadRequest("No dates provided");
+            }
+
             // Deduplicate dates first to avoid duplicate validation
-            var uniqueDates = dto.ReservationDates.Distinct().ToList();
+            var uniqueDates = dates.Distinct().ToList();
 
             // Generate a unique booking group ID for this reservation batch
             var ReservationGroupId = Guid.NewGuid();
@@ -155,6 +164,19 @@ namespace DeskBookingService.Controllers
                 ReservationGroupId = ReservationGroupId,
                 CreatedAt = DateTime.UtcNow
             }).ToList();
+
+            // Check if reservations exceed one booking size limit
+            var bookingSizeValidation = _validationService.ValidateBookingSize(reservations.Count);
+            if (!bookingSizeValidation.IsValid)
+            {
+                return BadRequest(bookingSizeValidation.ErrorMessage);
+            }
+            // Check if reservations exceed user's active reservations limit
+            var userActiveReservationsValidation = await _validationService.ValidateUserActiveReservationsLimit(dto.UserId.ToString(), reservations.Count);
+            if (!userActiveReservationsValidation.IsValid)
+            {
+                return BadRequest(userActiveReservationsValidation.ErrorMessage);
+            }
 
             // Validate all reservations before creating any (fail-fast)
             foreach (var reservation in reservations)

@@ -63,6 +63,10 @@ export const formatDate = (value: string): string => {
   return new Date(value).toLocaleDateString();
 };
 
+export const formatDateArray = (value: string): string => {
+  return new Date(value).toLocaleDateString();
+};
+
 export const formatNullableText = (value: string | null): JSX.Element | string => {
   return value || <em className="text-muted">No description</em>;
 };

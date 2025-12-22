@@ -46,7 +46,7 @@ export const useCrudOperations = () => {
           type: 'select' as const,
           options: desks.map(desk => ({
             value: desk.id,
-            label: `Desk ${desk.id}${desk.description ? ' - ' + desk.description : ''} (${desk.buildingName})`
+            label: `Desk ${desk.id}${desk.description ? ' - ' + desk.description : ''}`
           }))
         };
       }

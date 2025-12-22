@@ -240,6 +240,7 @@ export const createTableConfigs = (
     formFields: [
       { key: 'id', label: 'ID', type: 'number', disabled: true },
       { key: 'description', label: 'Description', type: 'textarea', required: false },
+      { key: 'deskNumber', label: 'Desk Number', type: 'text', required: true },
       { key: 'buildingId', label: 'Building', type: 'number', required: true },
       { key: 'positionX', label: 'Position X', type: 'number', required: false },
       { key: 'positionY', label: 'Position Y', type: 'number', required: false },
@@ -275,7 +276,7 @@ export const createTableConfigs = (
         { key: 'id', label: 'ID' },
         { key: 'userId', label: 'User ID' },
         {
-          key: 'reservationDate',
+          key: 'reservationDates',
           label: 'Date',
           render: (value: string) => formatDate(value)
         },

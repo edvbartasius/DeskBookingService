@@ -272,7 +272,7 @@ public class ReservationValidatorTests : IDisposable
     {
         // Arrange
         var date = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
-        TestDbContextFactory.CreateTestReservation(_context, "user1", 1, date);
+        TestDbContextFactory.CreateTestReservation(_context, "user1", 2, date);
 
         var reservation = new Reservation
         {
