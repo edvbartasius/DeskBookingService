@@ -15,21 +15,6 @@
 - **Building Management**: Configure buildings, and desk layouts
 - **Maintenance Tracking**: Mark desks as under maintenance with reasons
 
-## Architecture
-### Backend (C# ASP.NET Core)
-- ASP.NET Core 8.0
-- Entity Framework Core (In Memory)
-- AutoMapper (Mapster) for DTO mapping
-- FluentValidation for input validation
-- xUnit for testing
-
-### Frontend (React TypeScript)
-- React 19
-- TypeScript
-- Bootstrap 5
-- Axios for HTTP requests
-- React Router for navigation
-
 ## Database Schema
 
 ### Core Entities
@@ -45,6 +30,20 @@
 - Desk → Reservations (one-to-many)
 - User → Reservations (one-to-many)
 
+## Architecture
+### Backend (C# ASP.NET Core)
+- ASP.NET Core 10.0
+- Entity Framework Core (In Memory)
+- AutoMapper (Mapster) for DTO mapping
+- FluentValidation for input validation
+- xUnit for testing
+
+### Frontend (React TypeScript)
+- React 19
+- TypeScript
+- Bootstrap 5
+- Axios for HTTP requests
+- React Router for navigation
 
 ## Getting Started
 
