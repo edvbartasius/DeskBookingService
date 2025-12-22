@@ -29,9 +29,16 @@ namespace DeskBookingService.Controllers
         [HttpGet("get-users")]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _context.Users.ToListAsync();
-            var userDtos = _mapper.Map<List<UserDto>>(users);
-            return Ok(userDtos);
+            try
+            {
+                var users = await _context.Users.ToListAsync();
+                var userDtos = _mapper.Map<List<UserDto>>(users);
+                return Ok(userDtos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
         }
 
         /// <summary>

@@ -16,7 +16,7 @@ interface UseOfficeClosedDatesResult {
 const generateClosedDatesFromDayOfWeek = (closedDayNumbers: number[]): Date[] => {
   const dates: Date[] = [];
   const today = startOfDay(new Date());
-  const daysToGenerate = 365; // Generate a year's worth of closed dates
+  const daysToGenerate = 120; 
 
   for (let i = 0; i < daysToGenerate; i++) {
     const currentDate = addDays(today, i);

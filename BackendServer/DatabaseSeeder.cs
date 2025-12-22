@@ -42,7 +42,7 @@ public static class DatabaseSeeder
                     new Desk { Id = 102, DeskNumber = "2", Description = "Window desk", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
                     new Desk { Id = 103, DeskNumber = "3", Description = "Window desk", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
                     new Desk { Id = 104, DeskNumber = "4", Description = "Window desk", PositionX = 4, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 105, DeskNumber = "5", Description = "Window desk 5", PositionX = 5, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 105, DeskNumber = "5", Description = "Window desk", PositionX = 5, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
 
                     // Row 3: Regular desks
                     new Desk { Id = 111, DeskNumber = "6", Description = "Quiet area", PositionX = 1, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
@@ -66,11 +66,11 @@ public static class DatabaseSeeder
                 Desks = new List<Desk>
                 {
                     // Small quiet office
-                    new Desk { Id = 201, DeskNumber = "1", Description = "Focus desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 202, DeskNumber = "2", Description = "Focus desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 203, DeskNumber = "3", Description = "Focus desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 204, DeskNumber = "4", Description = "Work desk 1", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 205, DeskNumber = "5", Description = "Work desk 2", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 201, DeskNumber = "1", Description = "Focus desk", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 202, DeskNumber = "2", Description = "Focus desk", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 203, DeskNumber = "3", Description = "Focus desk", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 204, DeskNumber = "4", Description = "Work desk", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 205, DeskNumber = "5", Description = "Work desk", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
 
                     // Small conference room
                     new Desk { Id = 250, DeskNumber = "10",Description = "Small Meeting Room", PositionX = 6, PositionY = 2, Type = DeskType.ConferenceRoom, BuildingId = 2 },
@@ -87,36 +87,30 @@ public static class DatabaseSeeder
         {
             if (building.Id == 1) // Main Office
             {
-                // Monday-Friday: 7 AM - 7 PM
+                // Monday-Friday:
                 for (int day = 1; day <= 5; day++)  // 1=Monday, 5=Friday
                 {
                     hours.Add(new OperatingHours
                     {
                         BuildingId = building.Id,
                         DayOfWeek = (DayOfWeek)day,
-                        OpeningTime = new TimeOnly(7, 0),
-                        ClosingTime = new TimeOnly(19, 0),
                         IsClosed = false
                     });
                 }
 
-                // Saturday: 8 AM - 2 PM (half day)
+                // Saturday:
                 hours.Add(new OperatingHours
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Saturday,
-                    OpeningTime = new TimeOnly(8, 0),
-                    ClosingTime = new TimeOnly(14, 0),
                     IsClosed = false
                 });
 
-                // Sunday: Closed
+                // Sunday:
                 hours.Add(new OperatingHours
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Sunday,
-                    OpeningTime = new TimeOnly(0, 0),
-                    ClosingTime = new TimeOnly(0, 0),
                     IsClosed = true
                 });
             }
@@ -129,8 +123,6 @@ public static class DatabaseSeeder
                     {
                         BuildingId = building.Id,
                         DayOfWeek = (DayOfWeek)day,
-                        OpeningTime = new TimeOnly(8, 0),
-                        ClosingTime = new TimeOnly(18, 0),
                         IsClosed = false
                     });
                 }
@@ -140,8 +132,6 @@ public static class DatabaseSeeder
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Saturday,
-                    OpeningTime = new TimeOnly(0, 0),
-                    ClosingTime = new TimeOnly(0, 0),
                     IsClosed = true
                 });
 
@@ -149,8 +139,6 @@ public static class DatabaseSeeder
                 {
                     BuildingId = building.Id,
                     DayOfWeek = DayOfWeek.Sunday,
-                    OpeningTime = new TimeOnly(0, 0),
-                    ClosingTime = new TimeOnly(0, 0),
                     IsClosed = true
                 });
             }

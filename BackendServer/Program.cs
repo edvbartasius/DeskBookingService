@@ -27,7 +27,6 @@ builder.Services.AddControllers()
 builder.Services.AddDbContext<AppDbContext>();
 
 // Register application services
-builder.Services.AddScoped<DeskAvailabilityService>();
 builder.Services.AddScoped<ReservationValidationService>();
 
 // Register background services (conditionally based on configuration)

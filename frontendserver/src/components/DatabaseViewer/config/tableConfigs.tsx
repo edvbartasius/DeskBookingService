@@ -14,7 +14,8 @@ export interface ColumnConfig {
 
 export interface DetailViewConfig {
   title: (record: any) => string;
-  fetchData: (record: any) => Promise<any[]>;
+  // For production, use authentification before fetching sensitive DB data
+  fetchData: (record: any) => Promise<any[]>; 
   columns: ColumnConfig[];
 }
 

@@ -162,48 +162,18 @@ namespace DeskBookingService.Controllers
                     return NotFound($"Building with ID: {buildingId} not found");
                 }
 
-                var floorPlanDto = new FloorPlanDto
+                var floorPlanDto = _mapper.Map<FloorPlanDto>(building);
+
+                // Set IsReservedByCaller based on userId context
+                if (floorPlanDto.FloorPlanDesks != null)
                 {
-                    buildingName = building.Name,
-                    FloorPlanWidth = building.FloorPlanWidth,
-                    FloorPlanHeight = building.FloorPlanHeight,
-                    FloorPlanDesks = building.Desks.Select(desk =>
+                    foreach (var deskDto in floorPlanDto.FloorPlanDesks)
                     {
+                        var desk = building.Desks.First(d => d.Id == deskDto.Id);
                         var activeReservation = desk.Reservations.FirstOrDefault();
-
-                        DeskStatus status;
-                        if (desk.IsInMaintenance)
-                        {
-                            status = DeskStatus.Maintenance;
-                        }
-                        else if (activeReservation != null)
-                        {
-                            status = DeskStatus.Reserved;
-                        }
-                        else
-                        {
-                            status = DeskStatus.Open;
-                        }
-
-                        return new DeskDto
-                        {
-                            Id = desk.Id,
-                            Description = desk.Description,
-                            DeskNumber = desk.DeskNumber,
-                            BuildingId = desk.BuildingId,
-                            PositionX = desk.PositionX,
-                            PositionY = desk.PositionY,
-                            Type = desk.Type,
-                            Status = status,
-                            IsReservedByCaller = activeReservation?.UserId == userId,
-                            ReservedByFullName = activeReservation?.User != null
-                                ? $"{activeReservation.User.Name} {activeReservation.User.Surname}"
-                                : null,
-                            IsInMaintenance = desk.IsInMaintenance,
-                            MaintenanceReason = desk.MaintenanceReason
-                        };
-                    }).ToList()
-                };
+                        deskDto.IsReservedByCaller = activeReservation?.UserId == userId;
+                    }
+                }
 
                 return Ok(floorPlanDto);
             }

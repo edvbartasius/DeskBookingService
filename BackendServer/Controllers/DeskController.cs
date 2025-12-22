@@ -16,14 +16,12 @@ namespace DeskBookingService.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IMapper _mapper;
-        private readonly DeskAvailabilityService _deskAvailabilityService;
         private readonly IValidator<Desk> _validator;
 
-        public DeskController(AppDbContext context, IMapper mapper, DeskAvailabilityService deskAvailabilityService, IValidator<Desk> validator)
+        public DeskController(AppDbContext context, IMapper mapper, IValidator<Desk> validator)
         {
             _context = context;
             _mapper = mapper;
-            _deskAvailabilityService = deskAvailabilityService;
             _validator = validator;
         }
 
@@ -34,9 +32,17 @@ namespace DeskBookingService.Controllers
         [HttpGet("get-desks")]
         public async Task<IActionResult> GetDesks()
         {
-            var desks = await _context.Desks.ToListAsync();
-            var deskDtos = _mapper.Map<List<DeskDto>>(desks);
-            return Ok(deskDtos);
+            try
+            {
+                var desks = await _context.Desks.ToListAsync();
+                var deskDtos = _mapper.Map<List<DeskDto>>(desks);
+                return Ok(deskDtos);
+            }
+            catch (DbException ex)
+            {
+                return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+            }
+
         }
 
         /// <summary>
@@ -78,7 +84,6 @@ namespace DeskBookingService.Controllers
         [HttpDelete("delete/{id}")]
         public async Task<IActionResult> DeleteDesk(int id)
         {
-            Console.WriteLine($"delete: {id}");
             try
             {
                 var entry = await _context.Desks.FindAsync(id);

@@ -11,7 +11,7 @@ public class DeskDto
     public DeskStatus Status { get; set; }
     public DeskType Type { get; set; }
 
-    // Reservation info (populated when desk is booked)
+    // Reservation info (populated when desks are being retrieved, to avoid frontend calculations)
     public bool IsReservedByCaller { get; set; }
     public string? ReservedByFullName { get; set; }
 
