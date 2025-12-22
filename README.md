@@ -49,7 +49,7 @@
 ## Getting Started
 
 ### Prerequisites
-- **.NET 8.0 SDK**
+- **.NET 1.0 SDK**
 - **Node.js 18+**
 - **Yarn** (recommended) or npm
 

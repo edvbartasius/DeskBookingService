@@ -102,6 +102,7 @@ const ActiveReservationsContent = ({
             <ListGroup.Item key={group.reservationGroupId} className="px-0">
               <div>
                 <h6 className="mb-1 fw-semibold fs-5">
+                  #{group.deskNumber}{" "}
                   {group.deskDescription || `Desk ${group.deskId}`}
                   {group.hasToday && (
                     <Badge bg="success" className="ms-2 align-text-bottom" pill>

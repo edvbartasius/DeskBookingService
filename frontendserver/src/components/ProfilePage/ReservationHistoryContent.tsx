@@ -80,6 +80,7 @@ const ReservationHistoryContent = ({
               <div className="flex-grow-1">
                 {/* Desk title */}
                 <h6 className="mb-2 fs-5 fw-semibold">
+                    #{reservation.desk?.deskNumber}{" "}
                   {reservation.desk?.description || `Desk ${reservation.deskId}`}
                 </h6>
 

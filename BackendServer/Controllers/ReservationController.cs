@@ -302,6 +302,7 @@ namespace DeskBookingService.Controllers
                         createdAt = g.First().CreatedAt,
                         deskId = g.First().DeskId,
                         deskDescription = g.First().Desk?.Description,
+                        deskNumber = g.First().Desk?.DeskNumber,
                         buildingName = g.First().Desk?.Building?.Name,
                         reservationCount = g.Count(),
                         dates = g.OrderBy(r => r.ReservationDate)

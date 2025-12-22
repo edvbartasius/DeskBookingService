@@ -17,6 +17,7 @@ export interface DeskDto {
   id: number;
   description?: string;
   buildingId: number;
+  deskNumber: string;
   positionX: number;
   positionY: number;
   status: number;
@@ -43,6 +44,7 @@ export interface GroupedReservation {
   createdAt: string;
   deskId: number;
   deskDescription?: string;
+  deskNumber?: string;
   buildingName?: string;
   reservationCount: number;
   dates: string[]; // Array of DateOnly strings
