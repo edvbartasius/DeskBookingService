@@ -41,7 +41,10 @@ export const DeskCard: React.FC<DeskCardProps> = ({
       >
         <Card.Body>
           <div className="d-flex justify-content-between align-items-start mb-2">
-            <h5 className="mb-0">{desk.description}</h5>
+            <div>
+              <h5 className="mb-0 fw-bold">#{desk.deskNumber}</h5>
+              {desk.description && <small className="text-muted">{desk.description}</small>}
+            </div>
             <Badge bg={getStatusBadgeVariant(desk.status, desk.isReservedByCaller)}>
               {getDeskStatusLabel(desk.status)}
             </Badge>
@@ -71,7 +74,8 @@ export const DeskCard: React.FC<DeskCardProps> = ({
             zIndex: 10
           }}
         >
-          <h6 className="fw-bold mb-1">{desk.description || `Desk ${desk.id}`}</h6>
+          <h6 className="fw-bold mb-1">{desk.deskNumber}</h6>
+          {desk.description && <small className="text-muted d-block mb-1">{desk.description}</small>}
           <DeskStatusContent
             desk={desk}
             variant="full"

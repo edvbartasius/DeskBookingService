@@ -13,6 +13,7 @@ export enum DeskStatus {
 
 export interface DeskDto {
   id: number;
+  deskNumber: string;
   description?: string;
   buildingId: number;
   positionX: number; // Grid column

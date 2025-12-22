@@ -4,6 +4,7 @@ public class DeskDto
 {
     public int Id { get; set; }
     public string? Description { get; set; }
+    public required string DeskNumber { get; set; }
     public int BuildingId { get; set; } // Foreign key
     public float PositionX { get; set; }  // Floor plan positioning (in grid cells)
     public float PositionY { get; set; }

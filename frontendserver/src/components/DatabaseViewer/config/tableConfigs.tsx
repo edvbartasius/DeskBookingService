@@ -76,6 +76,7 @@ export const createTableConfigs = (
       columns: [
         { key: 'id', label: 'ID' },
         { key: 'deskId', label: 'Desk ID' },
+        { key: 'deskNumber', label: 'Desk Number' },
         {
           key: 'reservationDate',
           label: 'Date',
@@ -169,6 +170,7 @@ export const createTableConfigs = (
       },
       columns: [
         { key: 'id', label: 'ID' },
+        { key: "deskNumber", label: 'Desk Number' },
         {
           key: 'description',
           label: 'Description',
@@ -204,6 +206,7 @@ export const createTableConfigs = (
                 },
                 columns: [
                   { key: 'id', label: 'ID' },
+                  { key: 'deskNumber', label: 'Desk Number' },
                   {
                     key: 'description',
                     label: 'Description',
@@ -289,11 +292,13 @@ export const createTableConfigs = (
     },
     columns: [
       { key: 'id', label: 'ID' },
+      { key: 'deskNumber', label: 'Desk Number' },
       {
         key: 'description',
         label: 'Description',
         render: (value: string | null) => formatNullableText(value)
       },
+
       {
         key: 'buildingId',
         label: 'Building',
@@ -331,7 +336,7 @@ export const createTableConfigs = (
                 },
                 columns: [
                   { key: 'id', label: 'ID' },
-                  { key: 'userId', label: 'User ID' },
+                  { key: 'userId', label: 'User ID', render: (value: string | null) => formatGuid(value)},
                   {
                     key: 'reservationDate',
                     label: 'Date',
@@ -388,7 +393,7 @@ export const createTableConfigs = (
         render: (value: number) => {
           const desk = desks?.find(d => d.id === value);
           if (desk) {
-            return desk.description ? `Desk #${value} - ${desk.description}` : `Desk #${value}`;
+            return desk.description ? `#${desk.deskNumber} - ${desk.description}` : `Desk #${value}`;
           }
           return `Desk #${value}`;
         }

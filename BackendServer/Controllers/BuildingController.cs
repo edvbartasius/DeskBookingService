@@ -189,6 +189,7 @@ namespace DeskBookingService.Controllers
                         {
                             Id = desk.Id,
                             Description = desk.Description,
+                            DeskNumber = desk.DeskNumber,
                             BuildingId = desk.BuildingId,
                             PositionX = desk.PositionX,
                             PositionY = desk.PositionY,

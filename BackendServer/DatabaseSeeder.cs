@@ -38,23 +38,23 @@ public static class DatabaseSeeder
                 Desks = new List<Desk>
                 {
                     // Row 1: Regular desks along the top (window seats)
-                    new Desk { Id = 101, Description = "Window desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 102, Description = "Window desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 103, Description = "Window desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 104, Description = "Window desk 4", PositionX = 4, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 105, Description = "Window desk 5", PositionX = 5, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 101, DeskNumber = "1", Description = "Window desk", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 102, DeskNumber = "2", Description = "Window desk", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 103, DeskNumber = "3", Description = "Window desk", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 104, DeskNumber = "4", Description = "Window desk", PositionX = 4, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 105, DeskNumber = "5", Description = "Window desk 5", PositionX = 5, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 1 },
 
                     // Row 3: Regular desks
-                    new Desk { Id = 111, Description = "Quiet area", PositionX = 1, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 112, Description = "Quiet area", PositionX = 2, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 113, Description = "Quiet area", PositionX = 3, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 114, Description = "Quiet area", PositionX = 4, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
-                    new Desk { Id = 115, Description = "Quiet area", PositionX = 5, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 111, DeskNumber = "6", Description = "Quiet area", PositionX = 1, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 112, DeskNumber = "7", Description = "Quiet area", PositionX = 2, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 113, DeskNumber = "8", Description = "Quiet area", PositionX = 3, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 114, DeskNumber = "9", Description = "Quiet area", PositionX = 4, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
+                    new Desk { Id = 115, DeskNumber = "10", Description = "Quiet area", PositionX = 5, PositionY = 5, Type = DeskType.RegularDesk, BuildingId = 1 },
 
                     // Conference rooms (larger - takes up more cells)
-                    new Desk { Id = 150, Description = "Conference Room A", PositionX = 8, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
-                    new Desk { Id = 151, Description = "Conference Room B", PositionX = 11, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
-                    new Desk { Id = 152, Description = "Meeting Room", PositionX = 8, PositionY = 5, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    new Desk { Id = 150, DeskNumber = "20", Description = "Conference Room A", PositionX = 8, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    new Desk { Id = 151, DeskNumber = "21", Description = "Conference Room B", PositionX = 11, PositionY = 1, Type = DeskType.ConferenceRoom, BuildingId = 1 },
+                    new Desk { Id = 152, DeskNumber = "22", Description = "Meeting Room", PositionX = 8, PositionY = 5, Type = DeskType.ConferenceRoom, BuildingId = 1 },
                 }
             },
             new Building
@@ -66,14 +66,14 @@ public static class DatabaseSeeder
                 Desks = new List<Desk>
                 {
                     // Small quiet office
-                    new Desk { Id = 201, Description = "Focus desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 202, Description = "Focus desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 203, Description = "Focus desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 204, Description = "Work desk 1", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
-                    new Desk { Id = 205, Description = "Work desk 2", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 201, DeskNumber = "1", Description = "Focus desk 1", PositionX = 1, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 202, DeskNumber = "2", Description = "Focus desk 2", PositionX = 2, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 203, DeskNumber = "3", Description = "Focus desk 3", PositionX = 3, PositionY = 1, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 204, DeskNumber = "4", Description = "Work desk 1", PositionX = 1, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
+                    new Desk { Id = 205, DeskNumber = "5", Description = "Work desk 2", PositionX = 2, PositionY = 3, Type = DeskType.RegularDesk, BuildingId = 2 },
 
                     // Small conference room
-                    new Desk { Id = 250, Description = "Small Meeting Room", PositionX = 6, PositionY = 2, Type = DeskType.ConferenceRoom, BuildingId = 2 },
+                    new Desk { Id = 250, DeskNumber = "10",Description = "Small Meeting Room", PositionX = 6, PositionY = 2, Type = DeskType.ConferenceRoom, BuildingId = 2 },
                 }
             }
         };

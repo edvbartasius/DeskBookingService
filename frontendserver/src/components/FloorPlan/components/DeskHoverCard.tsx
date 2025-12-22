@@ -77,8 +77,13 @@ const DeskHoverCard: React.FC<DeskHoverCardProps> = ({
 
           {/* Desk Name/Description */}
           <h6 className="card-title fw-bold mb-1" style={{ paddingRight: '24px', fontSize: '0.95rem' }}>
-            {desk.description || `Desk ${desk.id}`}
+            #{desk.deskNumber}
           </h6>
+          {desk.description && (
+            <small className="text-muted d-block mb-1" style={{ fontSize: '0.8rem' }}>
+              {desk.description}
+            </small>
+          )}
 
           {/* Desk Details */}
           <div className="mb-1">
