@@ -51,9 +51,6 @@ export const useDeskAvailability = (deskId: number | undefined): UseDeskAvailabi
           // Backend returns array of DateOnly strings (e.g., ["2025-12-25", "2025-12-26"])
           const dateStrings: string[] = response.data || [];
 
-          console.log(`Fetched ${dateStrings.length} booked dates for desk ${deskId}`);
-          console.log(`bookedDates: ${dateStrings}`);
-
           // Convert date strings to Date objects in local timezone
           // Parse "2025-12-25" as Dec 25 at midnight local time (not UTC)
           const dates = dateStrings.map((dateStr: string) => {

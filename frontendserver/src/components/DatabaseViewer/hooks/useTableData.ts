@@ -17,8 +17,7 @@ export const useTableData = () => {
       if (!config) {
         throw new Error(`No configuration found for table: ${tableName}`);
       }
-
-      console.log(`Fetching ${tableName}`);
+      
       const data = await config.fetchData();
       setTableData(data);
     } catch (err) {

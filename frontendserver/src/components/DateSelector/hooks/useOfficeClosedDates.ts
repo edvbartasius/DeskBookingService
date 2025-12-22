@@ -73,12 +73,7 @@ export const useOfficeClosedDates = (buildingId: number | undefined): UseOfficeC
           // Backend returns DayOfWeek numbers (0=Sunday, 1=Monday, etc.)
           // Convert these to actual Date objects for the next year
           const closedDayOfWeekNumbers: number[] = response.data || [];
-
-          console.log("Closed days of week from API: ", closedDayOfWeekNumbers);
-
           const dates = generateClosedDatesFromDayOfWeek(closedDayOfWeekNumbers);
-          console.log(`Generated ${dates.length} closed dates for the next year`);
-
           setClosedDates(dates);
         }
       } catch (err) {
