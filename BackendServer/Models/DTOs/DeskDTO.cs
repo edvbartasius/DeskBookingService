@@ -7,7 +7,7 @@ public class DeskDto
     public required string DeskNumber { get; set; }
     public int BuildingId { get; set; } // Foreign key
     public float PositionX { get; set; }  // Floor plan positioning (in grid cells)
-    public float PositionY { get; set; }
+    public float PositionY { get; set; } // Conflicting position checks not implemented yet
     public DeskStatus Status { get; set; }
     public DeskType Type { get; set; }
 
