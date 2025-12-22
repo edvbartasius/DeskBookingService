@@ -49,7 +49,7 @@
 ## Getting Started
 
 ### Prerequisites
-- **.NET 1.0 SDK**
+- **.NET 10.0 SDK**
 - **Node.js 18+**
 - **Yarn** (recommended) or npm
 
@@ -110,18 +110,12 @@
 
 3. **Configure Backend Environment Variables**
    ```env
-   # Server Configuration
-   BACKEND_PORT=5000
-   FRONTEND_PORT=3000
-
    # URLs
    ASPNETCORE_URLS=http://localhost:5000
    FRONTEND_URL=http://localhost:3000
    ```
 
    **Available Variables:**
-   - `BACKEND_PORT`: Port for the ASP.NET Core API (default: 5000)
-   - `FRONTEND_PORT`: Port where the React frontend runs (default: 3000)
    - `ASPNETCORE_URLS`: Full URL for the backend server
    - `FRONTEND_URL`: URL of the frontend application
 
@@ -139,22 +133,12 @@
 
 3. **Configure Frontend Environment Variables**
    ```env
-   # Server Configuration
-   BACKEND_PORT=5000
-   FRONTEND_PORT=3000
-
-   # Frontend Development Server
-   PORT=3000
-
    # Backend API Configuration
    REACT_APP_API_BASE_URL=http://localhost:5000/api/
    ```
 
    **Available Variables:**
-   - `PORT`: Port for the React development server (default: 3000)
-   - `REACT_APP_API_BASE_URL`: Base URL for API calls to the backend
-     - Use `http://localhost:5000/api/` for local development
-     - Use your machine's IP (e.g., `http://192.168.1.100:5000/api/`) for testing via mobile phone (or other machine)
+   - `REACT_APP_API_BASE_URL=http://localhost:5000/api/`: Base URL for API calls to the backend
 
 ### Database Seeding
 
