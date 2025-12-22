@@ -10,10 +10,10 @@ const AdminPage = () => {
         <>
             {isAdmin ? (
                 <div className="page-container">
-                    <Container className="page-container">
-                        <h1>Admin Page</h1>
+                    <Container className="page-container py-2">
+                        <h1 className="text-start mb-4 pt-2 fw-bold">Admin Dashboard</h1>
                         <Card className="mt-4">
-                            <Card.Header>Database Viewer</Card.Header>
+                            <Card.Header className="fw-bold fs-2">Database Viewer</Card.Header>
                             <Card.Body>
                                 <DatabaseViewer />
                             </Card.Body>
@@ -22,7 +22,7 @@ const AdminPage = () => {
                 </div>
             ) : (
                 // If user is not logged in, redirect home
-                <Navigate to="/" replace/>
+                <Navigate to="/" replace />
             )}
         </>
     );

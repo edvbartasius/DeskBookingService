@@ -44,12 +44,6 @@ export const CrudModal: React.FC<CrudModalProps> = ({
             <Alert variant="warning">
               Are you sure you want to delete this {singularName}?
             </Alert>
-            <div className="mb-3">
-              <strong>Details:</strong>
-              <pre className="mt-2 p-2 bg-light rounded">
-                {JSON.stringify(formData, null, 2)}
-              </pre>
-            </div>
           </div>
         ) : (
           <Form>

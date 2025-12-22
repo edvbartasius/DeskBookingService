@@ -269,7 +269,7 @@ const DeskPage = () => {
 
   const deskStats = getDeskStats();
   return (
-    <Container className="py-4">
+    <Container className="py-2">
       <h1 className="text-start mb-4 pt-2 fw-bold">Desk Booking</h1>
       <Card className="desk-page-card">
         <Card.Body className="p-4">
@@ -328,7 +328,7 @@ const DeskPage = () => {
                 <Col className="d-flex justify-content-end">
                   <ButtonGroup className="desk-page-view-toggle">
                     <Button
-                      variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
+                      variant={viewMode === 'list' ? 'dark' : 'outline-dark'}
                       onClick={() => setViewMode('list')}
                       title="List View"
                     >
@@ -336,7 +336,7 @@ const DeskPage = () => {
                       List
                     </Button>
                     <Button
-                      variant={viewMode === 'floorplan' ? 'primary' : 'outline-primary'}
+                      variant={viewMode === 'floorplan' ? 'dark' : 'outline-dark'}
                       onClick={() => setViewMode('floorplan')}
                       title="Floor Plan View"
                     >

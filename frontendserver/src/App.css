@@ -76,6 +76,25 @@ body {
     padding-bottom: 0.25rem;
 }
 
+/* On mobile, make underline only appear under text, not full width */
+@media (max-width: 991px) {
+    .navbar-collapse .nav-link.active {
+        border-bottom: none;
+        width: fit-content;
+        position: relative;
+    }
+
+    .navbar-collapse .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: rgb(209, 209, 209);
+    }
+}
+
 .hr-black {
     border-color: rgb(0, 0, 0) !important;
     border-width: 1px !important;

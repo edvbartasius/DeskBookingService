@@ -38,7 +38,7 @@ const Navbar = () => {
                     </BootstrapNavbar.Brand>
                     <BootstrapNavbar.Toggle aria-controls="basic-navbar-nav" />
                     <BootstrapNavbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto gap-3">
+                        <Nav className="me-auto gap-1">
                             <Nav.Link as={NavLink} to="/desks">Seating</Nav.Link>
                             {loggedInUser && 
                                 <Nav.Link as={NavLink} to="/profile">Profile</Nav.Link>
